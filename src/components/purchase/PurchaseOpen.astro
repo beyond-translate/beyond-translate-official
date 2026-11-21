@@ -429,7 +429,7 @@ const successReview = fillTemplate(copy.success.review, { hours: reviewHours });
     grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
     align-items: start;
     gap: clamp(2rem, 5vw, 4rem);
-    padding-block: clamp(1rem, 2.5vw, 1.5rem) clamp(2rem, 5vw, 3.5rem);
+    padding-block: var(--bt-space-page-top) var(--bt-space-section);
   }
 
   .bt-buy-kicker {
@@ -535,7 +535,7 @@ const successReview = fillTemplate(copy.success.review, { hours: reviewHours });
 
   .bt-buy-section {
     border-top: 1px solid var(--bt-border);
-    padding-block: clamp(2rem, 5vw, 3.5rem);
+    padding-block: var(--bt-space-section);
     scroll-margin-top: 6rem;
   }
 

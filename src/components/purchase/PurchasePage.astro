@@ -55,7 +55,7 @@ const robots = open ? [] : [{ tag: 'meta' as const, attrs: { name: 'robots', con
   }
 
   .bt-purchase {
-    padding-block: clamp(1.5rem, 4vw, 2.5rem) clamp(3rem, 6vw, 5rem);
+    padding-block: var(--bt-space-page-top) var(--bt-space-section);
   }
 
   /* The hero already provides its own top spacing once the page title is hidden. */
