@@ -2,8 +2,10 @@
 import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
 
 import { purchaseConfig } from '@/config/purchase';
+import { LANGUAGE_TAGS, SITE_LANGUAGES, languageBuy } from '@/i18n/languages';
 import { getPurchaseStrings } from '@/i18n/purchase';
 import { assertPurchaseConfig } from '@/lib/purchase-guard';
+import { withBase } from '@/lib/url';
 
 import PurchaseClosed from './PurchaseClosed.astro';
 import PurchaseOpen from './PurchaseOpen.astro';
@@ -21,6 +23,18 @@ const title = open ? copy.meta.title : copy.closed.title;
 const description = open ? copy.meta.description : copy.closed.body;
 // The purchase page is not ready for search engines until sales open.
 const robots = open ? [] : [{ tag: 'meta' as const, attrs: { name: 'robots', content: 'noindex' } }];
+// Custom pages do not get Starlight's hreflang links; declare them so the preference script can redirect.
+const site = Astro.site;
+const alternates = site
+  ? SITE_LANGUAGES.map((code) => ({
+      tag: 'link' as const,
+      attrs: {
+        rel: 'alternate',
+        hreflang: LANGUAGE_TAGS[code],
+        href: new URL(withBase(languageBuy(code)), site).href,
+      },
+    }))
+  : [];
 ---
 
 <StarlightPage
@@ -29,7 +43,7 @@ const robots = open ? [] : [{ tag: 'meta' as const, attrs: { name: 'robots', con
     description,
     template: 'splash',
     pagefind: false,
-    head: robots,
+    head: [...alternates, ...robots],
   }}
   hasSidebar={false}
 >

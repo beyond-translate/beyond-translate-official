@@ -2,9 +2,10 @@ import { describe, expect, it } from 'vitest';
 
 import { purchaseConfig } from '../src/config/purchase';
 import { getLanding, landingLocale, landingStrings, type LandingLocale } from '../src/i18n/landing';
+import { SITE_LANGUAGES } from '../src/i18n/languages';
 import { purchasePath } from '../src/i18n/purchase';
 
-const LOCALES: readonly LandingLocale[] = ['zh-CN', 'zh-Hant', 'en'];
+const LOCALES: readonly LandingLocale[] = SITE_LANGUAGES;
 
 function objectPaths(value: unknown, prefix = ''): string[] {
   if (Array.isArray(value)) {
@@ -35,6 +36,8 @@ describe('landing copy', () => {
     expect(landingLocale('zh-Hant')).toBe('zh-Hant');
     expect(landingLocale('zh-TW')).toBe('zh-Hant');
     expect(landingLocale('en')).toBe('en');
+    expect(landingLocale('ja')).toBe('ja');
+    expect(landingLocale('pt-BR')).toBe('pt');
     expect(landingLocale(undefined)).toBe('en');
     expect(getLanding('en')).toBe(landingStrings.en);
   });

@@ -3,7 +3,7 @@ import { ArrowRight, EyeOff, KeyRound, LockKeyhole } from '@lucide/astro';
 
 import SectionHeading from '@/components/landing/SectionHeading.astro';
 import { getLanding } from '@/i18n/landing';
-import { localePath } from '@/i18n/purchase';
+import { docsPath } from '@/i18n/languages';
 import { withBase } from '@/lib/url';
 
 interface Props {
@@ -43,7 +43,7 @@ const icons = [KeyRound, LockKeyhole, EyeOff];
       })}
     </ul>
 
-    <a class="bt-privacy-link" href={withBase(localePath(lang, 'help/privacy/'))}>
+    <a class="bt-privacy-link" href={withBase(docsPath(lang, 'help/privacy/'))}>
       {copy.privacy.link}
       <ArrowRight size={15} stroke-width={1.8} aria-hidden="true" />
     </a>

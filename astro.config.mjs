@@ -11,21 +11,33 @@ const feedback = 'https://github.com/beyond-translate/feedback/issues';
 const ogImage = new URL(`${base}og-image.png`, site).href;
 
 // Runs before paint in every Starlight page. A manual choice wins; otherwise the browser language
-// picks a locale on the English root. Explicit /zh-cn/ and /zh-hant/ URLs are never redirected away.
+// picks a locale on the English root. Explicit locale URLs are never redirected away.
 const languagePreferenceScript = `(() => {
   const KEY = 'beyond-translate-lang';
-  const localeOf = (path) =>
-    /(^|\\/)zh-cn(\\/|$)/.test(path) ? 'zh-CN' : /(^|\\/)zh-hant(\\/|$)/.test(path) ? 'zh-TW' : 'en';
+  const LOCALES = {
+    '': 'en',
+    'zh-cn': 'zh-CN',
+    'zh-hant': 'zh-TW',
+    ja: 'ja',
+    ko: 'ko',
+    de: 'de',
+    fr: 'fr',
+    it: 'it',
+    es: 'es',
+    pt: 'pt'
+  };
+  const TAGS = Object.values(LOCALES);
   const normalize = (lang) => {
     const value = String(lang || '').toLowerCase();
     if (value === 'zh-cn' || value === 'zh-sg' || value.startsWith('zh-hans')) return 'zh-CN';
     if (value.startsWith('zh')) return 'zh-TW';
-    return 'en';
+    const primary = value.split('-')[0];
+    return TAGS.includes(primary) ? primary : 'en';
   };
   const readStored = () => {
     try {
       const value = localStorage.getItem(KEY);
-      return value === 'en' || value === 'zh-CN' || value === 'zh-TW' ? value : null;
+      return TAGS.includes(value) ? value : null;
     } catch (error) {
       return null;
     }
@@ -36,7 +48,8 @@ const languagePreferenceScript = `(() => {
       const tag = String(item || '').toLowerCase();
       if (tag === 'zh-tw' || tag === 'zh-hk' || tag === 'zh-mo' || tag.startsWith('zh-hant')) return 'zh-TW';
       if (tag.startsWith('zh')) return 'zh-CN';
-      if (tag === 'en' || tag.startsWith('en-')) return 'en';
+      const primary = tag.split('-')[0];
+      if (TAGS.includes(primary)) return primary;
     }
     return null;
   };
@@ -61,8 +74,9 @@ const languagePreferenceScript = `(() => {
     (event) => {
       const select = event.target;
       if (!(select instanceof HTMLSelectElement) || !select.closest('starlight-lang-select')) return;
+      const first = String(select.value || '').replace(/^\\/+/, '').split('/')[0] || '';
       try {
-        localStorage.setItem(KEY, localeOf(select.value || ''));
+        localStorage.setItem(KEY, LOCALES[first] || 'en');
       } catch (error) {}
     },
     true
@@ -88,6 +102,13 @@ export default defineConfig({
         'zh-cn': { label: '简体中文', lang: 'zh-CN' },
         // Starlight ships Traditional Chinese UI strings under zh-TW; the route prefix stays /zh-hant/.
         'zh-hant': { label: '繁體中文', lang: 'zh-TW' },
+        ja: { label: '日本語', lang: 'ja' },
+        ko: { label: '한국어', lang: 'ko' },
+        de: { label: 'Deutsch', lang: 'de' },
+        fr: { label: 'Français', lang: 'fr' },
+        it: { label: 'Italiano', lang: 'it' },
+        es: { label: 'Español', lang: 'es' },
+        pt: { label: 'Português', lang: 'pt' },
       },
       logo: {
         src: './src/assets/icon.svg',

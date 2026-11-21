@@ -1,6 +1,14 @@
 import type { PaymentMethodId } from '../config/purchase';
 import type { OrderFailure } from '../lib/purchase';
 import { landingLocale, type LandingLocale } from './landing';
+import { docsPath, languageBuy, languageHome, localizedPath } from './languages';
+import { purchase as de } from './purchase/de';
+import { purchase as es } from './purchase/es';
+import { purchase as fr } from './purchase/fr';
+import { purchase as it } from './purchase/it';
+import { purchase as ja } from './purchase/ja';
+import { purchase as ko } from './purchase/ko';
+import { purchase as pt } from './purchase/pt';
 
 export type PurchaseLocale = LandingLocale;
 
@@ -485,6 +493,13 @@ export const purchaseStrings = {
       body: 'For payment, order or activation problems, email {email} with the purchase email and transaction number.',
     },
   },
+  ja,
+  ko,
+  de,
+  fr,
+  it,
+  es,
+  pt,
 } as const satisfies Record<PurchaseLocale, PurchaseStrings>;
 
 export function purchaseLocale(lang: string | undefined): PurchaseLocale {
@@ -495,29 +510,22 @@ export function getPurchaseStrings(lang: string | undefined): PurchaseStrings {
   return purchaseStrings[purchaseLocale(lang)];
 }
 
-function localePrefix(lang: string | undefined): string {
-  const locale = purchaseLocale(lang);
-  if (locale === 'zh-CN') return '/zh-cn';
-  if (locale === 'zh-Hant') return '/zh-hant';
-  return '';
-}
-
 /** Locale-aware internal path, without the base path. */
 export function localePath(lang: string | undefined, path: string): string {
-  return `${localePrefix(lang)}/${path.replace(/^\/+/, '')}`;
+  return localizedPath(lang, path);
 }
 
 /** Locale-aware home page, without the base path. */
 export function localeHome(lang: string | undefined): string {
-  return `${localePrefix(lang)}/`;
+  return languageHome(lang);
 }
 
 /** Locale-aware purchase route, without the base path. */
 export function purchasePath(lang: string | undefined): string {
-  return localePath(lang, 'buy/');
+  return languageBuy(lang);
 }
 
-/** Locale-aware help index, without the base path. */
+/** Locale-aware help index, without the base path. Untranslated docs fall back to English. */
 export function helpPath(lang: string | undefined): string {
-  return localePath(lang, 'help/');
+  return docsPath(lang, 'help/');
 }

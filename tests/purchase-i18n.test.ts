@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { PAYMENT_METHOD_IDS } from '../src/config/purchase';
 import { ORDER_FAILURES } from '../src/lib/purchase';
+import { SITE_LANGUAGES } from '../src/i18n/languages';
 import {
   getPurchaseStrings,
   helpPath,
@@ -12,7 +13,7 @@ import {
   purchaseStrings,
 } from '../src/i18n/purchase';
 
-const LOCALES = ['zh-CN', 'zh-Hant', 'en'] as const;
+const LOCALES = SITE_LANGUAGES;
 
 function stringEntries(value: unknown, path = ''): Array<[string, string]> {
   if (typeof value === 'string') {
@@ -63,8 +64,12 @@ describe('purchase copy', () => {
     expect(helpPath('zh-CN')).toBe('/zh-cn/help/');
     expect(helpPath('en')).toBe('/help/');
     expect(helpPath('zh-Hant')).toBe('/zh-hant/help/');
+    expect(helpPath('ja')).toBe('/ja/help/');
     expect(localeHome('zh-CN')).toBe('/zh-cn/');
+    expect(localeHome('ja')).toBe('/ja/');
     expect(localePath('zh-CN', '/help/privacy/')).toBe('/zh-cn/help/privacy/');
+    expect(purchasePath('ja')).toBe('/ja/buy/');
+    expect(purchasePath('pt')).toBe('/pt/buy/');
   });
 
   it('has the same object shape in every language', () => {

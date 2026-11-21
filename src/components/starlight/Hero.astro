@@ -1,11 +1,12 @@
 ---
 import { LinkButton } from '@astrojs/starlight/components';
-import { Crown, Moon, Sun } from '@lucide/astro';
+import { Crown } from '@lucide/astro';
 
 import ProductPreview from '@/components/landing/ProductPreview.astro';
 import { purchaseConfig } from '@/config/purchase';
 import { storeIds, storeLogos, storeUrls } from '@/config/stores';
 import { getLanding } from '@/i18n/landing';
+import { docsPath } from '@/i18n/languages';
 import { getPurchaseStrings, localePath, purchasePath } from '@/i18n/purchase';
 import { withBase } from '@/lib/url';
 
@@ -22,15 +23,10 @@ const heroActions = purchaseOpen
   ? actions.map((action) => (action.variant === 'primary' ? { ...action, variant: 'secondary' as const } : action))
   : actions;
 
-const isEnglish = lang === 'en';
-const isSimplified = lang === 'zh-CN';
-const isTraditional = lang === 'zh-Hant';
-const simplifiedHref = withBase('/zh-cn/');
-const englishHref = withBase('/');
-const traditionalHref = withBase('/zh-hant/');
-
-const actionHref = (link: string) =>
-  /^(?:[a-z][a-z0-9+.-]*:|\/\/|#|\/)/i.test(link) ? withBase(link) : withBase(localePath(lang, link));
+const actionHref = (link: string) => {
+  if (link === 'help' || link.startsWith('help/')) return withBase(docsPath(lang, link));
+  return /^(?:[a-z][a-z0-9+.-]*:|\/\/|#|\/)/i.test(link) ? withBase(link) : withBase(localePath(lang, link));
+};
 
 const stores = storeIds.map((id, index) => ({
   label: copy.release.browsers[index] ?? id,
@@ -41,28 +37,6 @@ const stores = storeIds.map((id, index) => ({
 
 <section class="bt-hero" data-lang={lang} aria-labelledby="_top">
   <div class="bt-hero-copy">
-    <div class="bt-mobile-tools">
-      <nav class="bt-mobile-lang" aria-label={copy.tools.language}>
-        <a href={simplifiedHref} data-bt-lang-link data-lang="zh-CN" aria-current={isSimplified ? 'page' : undefined}>
-          简体
-        </a>
-        <a href={traditionalHref} data-bt-lang-link data-lang="zh-TW" aria-current={isTraditional ? 'page' : undefined}>
-          繁體
-        </a>
-        <a href={englishHref} data-bt-lang-link data-lang="en" aria-current={isEnglish ? 'page' : undefined}>
-          EN
-        </a>
-      </nav>
-      <button type="button" class="bt-mobile-theme" data-bt-theme-toggle aria-label={copy.tools.theme}>
-        <span class="bt-theme-moon" aria-hidden="true">
-          <Moon size={15} stroke-width={1.8} />
-        </span>
-        <span class="bt-theme-sun" aria-hidden="true">
-          <Sun size={15} stroke-width={1.8} />
-        </span>
-      </button>
-    </div>
-
     <p class="bt-eyebrow">
       <span class="bt-eyebrow-dot" aria-hidden="true"></span>
       {copy.eyebrow}
@@ -246,72 +220,6 @@ const stores = storeIds.map((id, index) => ({
     background: var(--bt-faint);
   }
 
-  .bt-mobile-tools {
-    display: none;
-  }
-
-  @media (max-width: 50rem) {
-    .bt-mobile-tools {
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      gap: 0.5rem;
-      margin-bottom: 0.9rem;
-    }
-
-    .bt-mobile-lang {
-      display: flex;
-      gap: 0.1rem;
-      border: 1px solid var(--bt-border);
-      border-radius: 999px;
-      padding: 0.15rem;
-      background: color-mix(in oklab, var(--bt-surface) 70%, transparent);
-    }
-
-    .bt-mobile-lang a {
-      border-radius: 999px;
-      padding: 0.22rem 0.5rem;
-      color: var(--bt-muted);
-      font-size: 0.72rem;
-      text-decoration: none;
-    }
-
-    .bt-mobile-lang a[aria-current='page'] {
-      background: var(--bt-brand);
-      color: var(--bt-brand-ink);
-    }
-
-    .bt-mobile-theme {
-      display: grid;
-      place-items: center;
-      width: 2rem;
-      height: 2rem;
-      border: 1px solid var(--bt-border);
-      border-radius: 999px;
-      background: var(--bt-surface);
-      color: var(--bt-muted);
-      cursor: pointer;
-    }
-
-    .bt-theme-moon,
-    .bt-theme-sun {
-      display: grid;
-      place-items: center;
-    }
-
-    .bt-theme-sun {
-      display: none;
-    }
-
-    :global(:root[data-theme='dark']) .bt-theme-sun {
-      display: grid;
-    }
-
-    :global(:root[data-theme='dark']) .bt-theme-moon {
-      display: none;
-    }
-  }
-
   @media (max-width: 64rem) {
     .bt-hero {
       grid-template-columns: minmax(0, 1fr);
@@ -329,32 +237,3 @@ const stores = storeIds.map((id, index) => ({
     }
   }
 </style>
-
-<script>
-  const themeButtons = document.querySelectorAll<HTMLButtonElement>('[data-bt-theme-toggle]');
-  for (const button of themeButtons) {
-    button.addEventListener('click', () => {
-      const root = document.documentElement;
-      const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
-      root.dataset.theme = next;
-      try {
-        localStorage.setItem('starlight-theme', next);
-      } catch {
-        // Storage can be unavailable in private modes; the theme still changes for this page.
-      }
-    });
-  }
-
-  const languageLinks = document.querySelectorAll<HTMLAnchorElement>('[data-bt-lang-link]');
-  for (const link of languageLinks) {
-    link.addEventListener('click', () => {
-      const value = link.dataset.lang;
-      if (!value) return;
-      try {
-        localStorage.setItem('beyond-translate-lang', value);
-      } catch {
-        // Storage can be unavailable in private modes; the link still navigates.
-      }
-    });
-  }
-</script>

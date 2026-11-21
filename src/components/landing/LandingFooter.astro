@@ -2,6 +2,7 @@
 import iconUrl from '@/assets/icon.svg';
 import { purchaseConfig } from '@/config/purchase';
 import { getLanding } from '@/i18n/landing';
+import { docsPath } from '@/i18n/languages';
 import { getPurchaseStrings, localeHome, localePath, purchasePath } from '@/i18n/purchase';
 import { withBase } from '@/lib/url';
 
@@ -48,7 +49,13 @@ const groups = purchaseConfig.enabled
                   href={
                     link.external
                       ? link.href
-                      : withBase(link.href.startsWith('/') ? link.href : localePath(lang, link.href))
+                      : withBase(
+                          link.href.startsWith('/')
+                            ? link.href
+                            : link.href.startsWith('help/')
+                              ? docsPath(lang, link.href)
+                              : localePath(lang, link.href),
+                        )
                   }
                   target={link.external ? '_blank' : undefined}
                   rel={link.external ? 'noopener noreferrer' : undefined}

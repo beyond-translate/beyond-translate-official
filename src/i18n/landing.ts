@@ -1,9 +1,18 @@
 /**
- * Landing-page copy for the three site languages. The docs live in Markdown per locale;
+ * Landing-page copy for the supported site languages. The docs live in Markdown per locale;
  * this file covers the shared landing components, where the same layout renders different copy.
  */
 
-export type LandingLocale = 'zh-CN' | 'zh-Hant' | 'en';
+import { siteLanguage, type SiteLanguage } from './languages';
+import { landing as de } from './landing/de';
+import { landing as es } from './landing/es';
+import { landing as fr } from './landing/fr';
+import { landing as it } from './landing/it';
+import { landing as ja } from './landing/ja';
+import { landing as ko } from './landing/ko';
+import { landing as pt } from './landing/pt';
+
+export type LandingLocale = SiteLanguage;
 
 export type FeatureId = 'privacy' | 'rules' | 'memory' | 'selection' | 'compare' | 'engine';
 
@@ -641,21 +650,17 @@ export const landingStrings = {
       legal: '© 2026 Beyond Translate · 译无界. Site source is open under the MIT license.',
     },
   },
+  ja,
+  ko,
+  de,
+  fr,
+  it,
+  es,
+  pt,
 } as const satisfies Record<LandingLocale, LandingStrings>;
 
 export function landingLocale(lang: string | undefined): LandingLocale {
-  const value = lang?.toLowerCase();
-  if (
-    value === 'zh-hant' ||
-    value === 'zh-tw' ||
-    value === 'zh-hk' ||
-    value === 'zh-mo' ||
-    value?.startsWith('zh-hant')
-  ) {
-    return 'zh-Hant';
-  }
-  if (value?.startsWith('zh')) return 'zh-CN';
-  return 'en';
+  return siteLanguage(lang);
 }
 
 export function getLanding(lang: string | undefined): LandingStrings {
