@@ -120,6 +120,7 @@ export default defineConfig({
       customCss: ['./src/styles/theme.css'],
       components: {
         Hero: './src/components/starlight/Hero.astro',
+        Header: './src/components/starlight/Header.astro',
         EditLink: './src/components/starlight/EditLink.astro',
       },
       credits: false,

@@ -1,0 +1,199 @@
+---
+import { Languages, Moon, Sun } from '@lucide/astro';
+
+import { getLanding } from '@/i18n/landing';
+import {
+  LANGUAGE_LABELS,
+  LANGUAGE_NAMES,
+  LANGUAGE_PREFIXES,
+  LANGUAGE_TAGS,
+  SITE_LANGUAGES,
+  siteLanguage,
+  type SiteLanguage,
+} from '@/i18n/languages';
+import { withBase } from '@/lib/url';
+
+const routeLang = Astro.locals.starlightRoute?.lang;
+const current = siteLanguage(routeLang);
+const themeLabel = getLanding(current).tools.theme;
+const base = import.meta.env.BASE_URL;
+const pathname = Astro.url.pathname.startsWith(base) ? Astro.url.pathname.slice(base.length) : Astro.url.pathname;
+const prefix = LANGUAGE_PREFIXES[current];
+const rest = prefix ? pathname.replace(new RegExp(`^${prefix}/?`), '') : pathname;
+const relative = `/${rest.replace(/^\/+/, '')}`;
+
+const hrefFor = (language: SiteLanguage): string => {
+  const targetPrefix = LANGUAGE_PREFIXES[language];
+  return withBase(`${targetPrefix ? `/${targetPrefix}` : ''}${relative}`);
+};
+---
+
+<div class="bt-mobile-actions">
+  <details class="bt-mobile-language" data-bt-mobile-language-menu>
+    <summary aria-label={LANGUAGE_LABELS[current]}>
+      <Languages size={18} stroke-width={1.8} aria-hidden="true" />
+    </summary>
+    <ul>
+      {SITE_LANGUAGES.map((code) => (
+        <li>
+          <a
+            href={hrefFor(code)}
+            data-lang={LANGUAGE_TAGS[code]}
+            lang={LANGUAGE_TAGS[code]}
+            aria-current={code === current ? 'true' : undefined}
+          >
+            {LANGUAGE_NAMES[code]}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </details>
+
+  <button type="button" class="bt-mobile-theme" data-bt-theme-toggle aria-label={themeLabel}>
+    <span class="bt-theme-moon" aria-hidden="true">
+      <Moon size={17} stroke-width={1.8} />
+    </span>
+    <span class="bt-theme-sun" aria-hidden="true">
+      <Sun size={17} stroke-width={1.8} />
+    </span>
+  </button>
+</div>
+
+<script>
+  const themeButtons = document.querySelectorAll<HTMLButtonElement>('[data-bt-theme-toggle]');
+  for (const button of themeButtons) {
+    button.addEventListener('click', () => {
+      const root = document.documentElement;
+      const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+      root.dataset.theme = next;
+      try {
+        localStorage.setItem('starlight-theme', next);
+      } catch {
+        // Storage can be unavailable in private modes; the theme still changes for this page.
+      }
+    });
+  }
+
+  const menus = document.querySelectorAll<HTMLDetailsElement>('[data-bt-mobile-language-menu]');
+  for (const menu of menus) {
+    for (const link of menu.querySelectorAll<HTMLAnchorElement>('[data-lang]')) {
+      link.addEventListener('click', () => {
+        const value = link.dataset.lang;
+        try {
+          if (value) localStorage.setItem('beyond-translate-lang', value);
+        } catch {
+          // Storage can be unavailable in private modes; the link still navigates.
+        }
+      });
+    }
+  }
+
+  document.addEventListener('click', (event) => {
+    for (const menu of menus) {
+      if (!menu.contains(event.target as Node)) menu.open = false;
+    }
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+    for (const menu of menus) menu.open = false;
+  });
+</script>
+
+<style>
+  .bt-mobile-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .bt-mobile-language {
+    position: relative;
+  }
+
+  .bt-mobile-language summary,
+  .bt-mobile-theme {
+    display: grid;
+    place-items: center;
+    width: 2.1rem;
+    height: 2.1rem;
+    border: 1px solid var(--bt-border);
+    border-radius: 999px;
+    background: var(--bt-surface);
+    color: var(--bt-muted);
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .bt-mobile-language summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .bt-mobile-language summary:hover,
+  .bt-mobile-theme:hover {
+    border-color: var(--bt-brand);
+    color: var(--bt-ink);
+  }
+
+  .bt-mobile-language summary:focus-visible,
+  .bt-mobile-theme:focus-visible,
+  .bt-mobile-language a:focus-visible {
+    outline: 2px solid var(--bt-brand);
+    outline-offset: 2px;
+  }
+
+  .bt-mobile-language ul {
+    position: absolute;
+    top: calc(100% + 0.55rem);
+    right: 0;
+    z-index: 30;
+    display: grid;
+    min-width: 10rem;
+    max-height: min(22rem, calc(100dvh - 6rem));
+    overflow: auto;
+    margin: 0;
+    border: 1px solid var(--bt-border);
+    border-radius: 0.8rem;
+    padding: 0.35rem;
+    background: var(--bt-surface);
+    box-shadow: var(--bt-shadow);
+    list-style: none;
+  }
+
+  .bt-mobile-language a {
+    display: block;
+    border-radius: 0.45rem;
+    padding: 0.45rem 0.6rem;
+    color: var(--bt-ink);
+    font-size: 0.82rem;
+    text-decoration: none;
+  }
+
+  .bt-mobile-language a:hover {
+    background: var(--bt-surface-2);
+  }
+
+  .bt-mobile-language a[aria-current='true'] {
+    background: var(--bt-brand-soft);
+    color: var(--bt-brand-strong);
+    font-weight: 600;
+  }
+
+  .bt-theme-moon,
+  .bt-theme-sun {
+    display: grid;
+    place-items: center;
+  }
+
+  .bt-theme-sun {
+    display: none;
+  }
+
+  :global(:root[data-theme='dark']) .bt-theme-sun {
+    display: grid;
+  }
+
+  :global(:root[data-theme='dark']) .bt-theme-moon {
+    display: none;
+  }
+</style>
