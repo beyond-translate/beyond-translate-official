@@ -28,6 +28,7 @@ export interface PurchaseStrings {
   form: {
     title: string;
     intro: string;
+    open: string;
     emailLabel: string;
     emailHint: string;
     emailConfirmLabel: string;
@@ -134,6 +135,7 @@ export const purchaseStrings = {
     form: {
       title: '提交订单',
       intro: '购买邮箱用于接收许可邮件；在扩展中激活时也必须使用同一个邮箱。',
+      open: '提交订单',
       emailLabel: '购买邮箱',
       emailHint: '许可邮件会发送到这个地址，最多 254 个字符。',
       emailConfirmLabel: '再次输入购买邮箱',
@@ -269,6 +271,7 @@ export const purchaseStrings = {
     form: {
       title: '提交訂單',
       intro: '購買信箱用於接收授權郵件；在擴充功能中啟用時也必須使用同一個信箱。',
+      open: '提交訂單',
       emailLabel: '購買信箱',
       emailHint: '授權郵件會寄到這個地址，最多 254 個字元。',
       emailConfirmLabel: '再次輸入購買信箱',
@@ -406,6 +409,7 @@ export const purchaseStrings = {
     form: {
       title: 'Submit the order',
       intro: 'The purchase email receives your license email and must also be used to activate in the extension.',
+      open: 'Submit order',
       emailLabel: 'Purchase email',
       emailHint: 'The license email goes to this address. Up to 254 characters.',
       emailConfirmLabel: 'Purchase email again',

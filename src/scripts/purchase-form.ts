@@ -263,14 +263,29 @@ export function initPurchaseForm(): void {
   const script = document.getElementById('purchase-turnstile-script');
   script?.addEventListener('error', () => markTurnstileFailed());
 
-  if (!renderTurnstile()) {
-    const startedAt = Date.now();
-    const timer = window.setInterval(() => {
-      if (renderTurnstile() || Date.now() - startedAt >= TURNSTILE_LOAD_TIMEOUT_MS) {
-        window.clearInterval(timer);
-        if (widgetId === null) markTurnstileFailed();
-      }
-    }, 150);
+  let turnstileStarted = false;
+
+  function startTurnstile(): void {
+    if (turnstileStarted) return;
+    turnstileStarted = true;
+    if (!renderTurnstile()) {
+      const startedAt = Date.now();
+      const timer = window.setInterval(() => {
+        if (renderTurnstile() || Date.now() - startedAt >= TURNSTILE_LOAD_TIMEOUT_MS) {
+          window.clearInterval(timer);
+          if (widgetId === null) markTurnstileFailed();
+        }
+      }, 150);
+    }
+  }
+
+  // The order form lives in a dialog; render Turnstile only once it is visible, since a hidden
+  // container gives the widget nothing to size against.
+  const orderDialog = document.getElementById('buy-order-dialog');
+  if (orderDialog) {
+    orderDialog.addEventListener('bt:dialog-open', startTurnstile, { once: true });
+  } else {
+    startTurnstile();
   }
 
   form.addEventListener('submit', (event) => {

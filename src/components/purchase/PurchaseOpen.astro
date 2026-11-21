@@ -1,5 +1,5 @@
 ---
-import { ZoomIn } from '@lucide/astro';
+import { X, ZoomIn } from '@lucide/astro';
 import QRCode from 'qrcode';
 
 import { purchaseConfig, type PaymentMethodId } from '@/config/purchase';
@@ -96,9 +96,20 @@ const successReview = fillTemplate(copy.success.review, { hours: reviewHours });
   </header>
 
   <section class="bt-buy-section" aria-labelledby="buy-payment-title">
-    <h2 id="buy-payment-title">{copy.payment.title}</h2>
+    <div class="bt-section-head">
+      <h2 id="buy-payment-title">{copy.payment.title}</h2>
+      <button type="button" class="bt-order-open" data-dialog-open="buy-order-dialog" aria-haspopup="dialog">
+        {copy.form.open}
+      </button>
+    </div>
     <p class="bt-section-intro">{copy.payment.intro}</p>
     <p class="bt-payment-hint">{paymentHint}</p>
+
+    <noscript>
+      <p class="bt-noscript">
+        <SupportEmail template={copy.form.noScript} email={supportEmail} />
+      </p>
+    </noscript>
 
     <div class="bt-method-grid">
       {methods.map((method) => (
@@ -106,7 +117,7 @@ const successReview = fillTemplate(copy.success.review, { hours: reviewHours });
           <button
             type="button"
             class="bt-qr-button"
-            data-qr-open={method.dialogId}
+            data-dialog-open={method.dialogId}
             aria-haspopup="dialog"
             aria-label={method.zoomLabel}
           >
@@ -163,7 +174,7 @@ const successReview = fillTemplate(copy.success.review, { hours: reviewHours });
               </button>
             </div>
           )}
-          <button type="button" class="bt-dialog-close" data-qr-close>
+          <button type="button" class="bt-dialog-close" data-dialog-close>
             {copy.payment.close}
           </button>
         </div>
@@ -171,187 +182,196 @@ const successReview = fillTemplate(copy.success.review, { hours: reviewHours });
     ))}
   </section>
 
-  <section class="bt-buy-section" id="buy-order" aria-labelledby="buy-order-title">
-    <h2 id="buy-order-title">{copy.form.title}</h2>
-    <p class="bt-section-intro">{copy.form.intro}</p>
-
-    <noscript>
-      <p class="bt-noscript">
-        <SupportEmail template={copy.form.noScript} email={supportEmail} />
-      </p>
-    </noscript>
-
-    <div data-form-wrap>
-      <!-- Sensitive fields have no name: a no-JavaScript GET submit must not put them in the URL. -->
-      <form class="bt-form" data-purchase-form data-locale={lang} novalidate>
-        <div class="bt-field">
-          <label for="purchase-email">{copy.form.emailLabel}</label>
-          <input
-            id="purchase-email"
-            class="bt-input"
-            type="email"
-            data-field-email
-            autocomplete="email"
-            inputmode="email"
-            maxlength="254"
-            spellcheck="false"
-            required
-            aria-describedby="purchase-email-hint purchase-email-error"
-          />
-          <p class="bt-hint" id="purchase-email-hint">
-            {copy.form.emailHint}
-          </p>
-          <p class="bt-field-error" id="purchase-email-error" data-error="email" aria-live="polite" hidden></p>
+  <dialog
+    class="bt-order-dialog"
+    id="buy-order-dialog"
+    aria-labelledby="buy-order-title"
+    aria-describedby="buy-order-intro"
+  >
+    <div class="bt-order-dialog-body">
+      <header class="bt-order-dialog-head">
+        <div>
+          <h2 id="buy-order-title">{copy.form.title}</h2>
+          <p id="buy-order-intro">{copy.form.intro}</p>
         </div>
+        <button type="button" class="bt-order-close" data-dialog-close aria-label={copy.payment.close}>
+          <X size={18} stroke-width={1.8} aria-hidden="true" />
+        </button>
+      </header>
 
-        <div class="bt-field">
-          <label for="purchase-email-confirm">{copy.form.emailConfirmLabel}</label>
-          <input
-            id="purchase-email-confirm"
-            class="bt-input"
-            type="email"
-            data-field-email-confirm
-            autocomplete="email"
-            inputmode="email"
-            maxlength="254"
-            spellcheck="false"
-            required
-            aria-describedby="purchase-email-confirm-hint purchase-email-confirm-error"
-          />
-          <p class="bt-hint" id="purchase-email-confirm-hint">
-            {copy.form.emailConfirmHint}
-          </p>
-          <p
-            class="bt-field-error"
-            id="purchase-email-confirm-error"
-            data-error="emailConfirm"
-            aria-live="polite"
-            hidden
-          ></p>
-        </div>
-
-        <fieldset
-          class="bt-field bt-method-fieldset"
-          data-method-fieldset
-          tabindex="-1"
-          aria-describedby={
-            hasManualAmountMethod ? 'purchase-amount-note purchase-method-error' : 'purchase-method-error'
-          }
-        >
-          <legend>{copy.form.methodLegend}</legend>
-          <div class="bt-radio-group">
-            {methods.map((method) => (
-              <label class="bt-radio">
-                <input type="radio" name="payment-method" value={method.id} required />
-                <span>{method.label}</span>
-              </label>
-            ))}
-          </div>
-          {hasManualAmountMethod && (
-            <p class="bt-hint" id="purchase-amount-note">
-              {amountNote}
+      <div data-form-wrap>
+        <!-- Sensitive fields have no name: a no-JavaScript GET submit must not put them in the URL. -->
+        <form class="bt-form" data-purchase-form data-locale={lang} novalidate>
+          <div class="bt-field">
+            <label for="purchase-email">{copy.form.emailLabel}</label>
+            <input
+              id="purchase-email"
+              class="bt-input"
+              type="email"
+              data-field-email
+              autocomplete="email"
+              inputmode="email"
+              maxlength="254"
+              spellcheck="false"
+              required
+              autofocus
+              aria-describedby="purchase-email-hint purchase-email-error"
+            />
+            <p class="bt-hint" id="purchase-email-hint">
+              {copy.form.emailHint}
             </p>
-          )}
-          <p class="bt-field-error" id="purchase-method-error" data-error="method" aria-live="polite" hidden></p>
-        </fieldset>
+            <p class="bt-field-error" id="purchase-email-error" data-error="email" aria-live="polite" hidden></p>
+          </div>
 
-        <div class="bt-field">
-          <label for="purchase-transaction">{copy.form.transactionLabel}</label>
-          <input
-            id="purchase-transaction"
-            class="bt-input"
-            type="text"
-            data-field-transaction
-            autocomplete="off"
-            spellcheck="false"
-            maxlength="100"
-            required
-            aria-describedby="purchase-transaction-hint purchase-transaction-method-hint purchase-transaction-error"
-          />
-          <p class="bt-hint" id="purchase-transaction-hint">
-            {copy.form.transactionHint}
-          </p>
-          <p class="bt-hint" id="purchase-transaction-method-hint" data-transaction-hint hidden></p>
-          <p
-            class="bt-field-error"
-            id="purchase-transaction-error"
-            data-error="transaction"
-            aria-live="polite"
-            hidden
-          ></p>
-        </div>
+          <div class="bt-field">
+            <label for="purchase-email-confirm">{copy.form.emailConfirmLabel}</label>
+            <input
+              id="purchase-email-confirm"
+              class="bt-input"
+              type="email"
+              data-field-email-confirm
+              autocomplete="email"
+              inputmode="email"
+              maxlength="254"
+              spellcheck="false"
+              required
+              aria-describedby="purchase-email-confirm-hint purchase-email-confirm-error"
+            />
+            <p class="bt-hint" id="purchase-email-confirm-hint">
+              {copy.form.emailConfirmHint}
+            </p>
+            <p
+              class="bt-field-error"
+              id="purchase-email-confirm-error"
+              data-error="emailConfirm"
+              aria-live="polite"
+              hidden
+            ></p>
+          </div>
 
-        <div class="bt-field">
-          <p class="bt-label" id="purchase-turnstile-label">
-            {copy.form.turnstileLabel}
-          </p>
-          <p class="bt-hint" id="purchase-turnstile-hint">
-            {copy.form.turnstileHint}
-          </p>
-          <div
-            class="bt-turnstile"
-            data-turnstile
+          <fieldset
+            class="bt-field bt-method-fieldset"
+            data-method-fieldset
             tabindex="-1"
-            aria-labelledby="purchase-turnstile-label"
-            aria-describedby="purchase-turnstile-hint purchase-turnstile-status"
-          ></div>
-          <p class="bt-hint" id="purchase-turnstile-status" data-turnstile-status role="status">
-            {copy.form.turnstileLoading}
-          </p>
-        </div>
+            aria-describedby={
+              hasManualAmountMethod ? 'purchase-amount-note purchase-method-error' : 'purchase-method-error'
+            }
+          >
+            <legend>{copy.form.methodLegend}</legend>
+            <div class="bt-radio-group">
+              {methods.map((method) => (
+                <label class="bt-radio">
+                  <input type="radio" name="payment-method" value={method.id} required />
+                  <span>{method.label}</span>
+                </label>
+              ))}
+            </div>
+            {hasManualAmountMethod && (
+              <p class="bt-hint" id="purchase-amount-note">
+                {amountNote}
+              </p>
+            )}
+            <p class="bt-field-error" id="purchase-method-error" data-error="method" aria-live="polite" hidden></p>
+          </fieldset>
 
-        <div class="bt-form-problem" data-form-problem role="alert" tabindex="-1" hidden></div>
+          <div class="bt-field">
+            <label for="purchase-transaction">{copy.form.transactionLabel}</label>
+            <input
+              id="purchase-transaction"
+              class="bt-input"
+              type="text"
+              data-field-transaction
+              autocomplete="off"
+              spellcheck="false"
+              maxlength="100"
+              required
+              aria-describedby="purchase-transaction-hint purchase-transaction-method-hint purchase-transaction-error"
+            />
+            <p class="bt-hint" id="purchase-transaction-hint">
+              {copy.form.transactionHint}
+            </p>
+            <p class="bt-hint" id="purchase-transaction-method-hint" data-transaction-hint hidden></p>
+            <p
+              class="bt-field-error"
+              id="purchase-transaction-error"
+              data-error="transaction"
+              aria-live="polite"
+              hidden
+            ></p>
+          </div>
 
-        <div class="bt-form-fallback" data-turnstile-fallback hidden>
-          <p>
-            <SupportEmail template={copy.form.supportFallback} email={supportEmail} />
-          </p>
-        </div>
+          <div class="bt-field">
+            <p class="bt-label" id="purchase-turnstile-label">
+              {copy.form.turnstileLabel}
+            </p>
+            <p class="bt-hint" id="purchase-turnstile-hint">
+              {copy.form.turnstileHint}
+            </p>
+            <div
+              class="bt-turnstile"
+              data-turnstile
+              tabindex="-1"
+              aria-labelledby="purchase-turnstile-label"
+              aria-describedby="purchase-turnstile-hint purchase-turnstile-status"
+            ></div>
+            <p class="bt-hint" id="purchase-turnstile-status" data-turnstile-status role="status">
+              {copy.form.turnstileLoading}
+            </p>
+          </div>
 
-        <div class="bt-submit-row">
-          <button type="submit" class="bt-submit" data-submit>
-            {copy.form.submit}
-          </button>
-        </div>
-      </form>
+          <div class="bt-form-problem" data-form-problem role="alert" tabindex="-1" hidden></div>
+
+          <div class="bt-form-fallback" data-turnstile-fallback hidden>
+            <p>
+              <SupportEmail template={copy.form.supportFallback} email={supportEmail} />
+            </p>
+          </div>
+
+          <div class="bt-submit-row">
+            <button type="submit" class="bt-submit" data-submit>
+              {copy.form.submit}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <section
+        class="bt-result is-success"
+        data-result-success
+        role="status"
+        tabindex="-1"
+        aria-labelledby="purchase-success-title"
+        hidden
+      >
+        <h2 id="purchase-success-title">{copy.success.title}</h2>
+        <p data-success-body></p>
+        <dl class="bt-result-details">
+          <dt>{copy.success.emailLabel}</dt>
+          <dd data-success-email></dd>
+        </dl>
+        <p>{successReview}</p>
+        <p>{copy.success.waitEmail}</p>
+        <p>{copy.success.activate}</p>
+      </section>
+
+      <section
+        class="bt-result is-problem"
+        data-result-problem
+        role="alert"
+        tabindex="-1"
+        aria-labelledby="purchase-problem-title"
+        hidden
+      >
+        <h2 id="purchase-problem-title" data-problem-title>
+          {copy.form.problemTitle}
+        </h2>
+        <p data-problem-body></p>
+        <p>
+          <SupportEmail template={copy.support.body} email={supportEmail} />
+        </p>
+      </section>
     </div>
-
-    <section
-      class="bt-result is-success"
-      data-result-success
-      role="status"
-      tabindex="-1"
-      aria-labelledby="purchase-success-title"
-      hidden
-    >
-      <h2 id="purchase-success-title">{copy.success.title}</h2>
-      <p data-success-body></p>
-      <dl class="bt-result-details">
-        <dt>{copy.success.emailLabel}</dt>
-        <dd data-success-email></dd>
-      </dl>
-      <p>{successReview}</p>
-      <p>{copy.success.waitEmail}</p>
-      <p>{copy.success.activate}</p>
-    </section>
-
-    <section
-      class="bt-result is-problem"
-      data-result-problem
-      role="alert"
-      tabindex="-1"
-      aria-labelledby="purchase-problem-title"
-      hidden
-    >
-      <h2 id="purchase-problem-title" data-problem-title>
-        {copy.form.problemTitle}
-      </h2>
-      <p data-problem-body></p>
-      <p>
-        <SupportEmail template={copy.support.body} email={supportEmail} />
-      </p>
-    </section>
-  </section>
+  </dialog>
 
   <section class="bt-buy-section" aria-labelledby="buy-terms-title">
     <h2 id="buy-terms-title">{copy.terms.title}</h2>
@@ -385,10 +405,10 @@ const successReview = fillTemplate(copy.success.review, { hours: reviewHours });
     defer
   ></script>
   <script>
+    import { initPurchaseDialogs } from '@/scripts/purchase-dialogs';
     import { initPurchaseForm } from '@/scripts/purchase-form';
-    import { initPaymentQrDialogs } from '@/scripts/purchase-qr';
 
-    initPaymentQrDialogs();
+    initPurchaseDialogs();
     initPurchaseForm();
   </script>
 </div>
@@ -527,6 +547,37 @@ const successReview = fillTemplate(copy.success.review, { hours: reviewHours });
     letter-spacing: -0.02em;
   }
 
+  .bt-section-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1rem;
+  }
+
+  .bt-order-open {
+    margin-inline-start: auto;
+    min-height: 2.65rem;
+    border: 0;
+    border-radius: 999px;
+    padding: 0.55rem 1.25rem;
+    background: var(--bt-brand);
+    color: var(--bt-brand-ink);
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .bt-order-open:hover {
+    background: var(--bt-brand-strong);
+  }
+
+  .bt-order-open:focus-visible {
+    outline: 2px solid var(--bt-brand);
+    outline-offset: 3px;
+  }
+
   .bt-section-intro {
     max-width: 44rem;
     margin: 0.7rem 0 0;
@@ -548,6 +599,12 @@ const successReview = fillTemplate(copy.success.review, { hours: reviewHours });
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 1.5rem 1.1rem;
     margin: 1.5rem 0 0;
+    transition: filter 160ms ease;
+  }
+
+  /* One code is open alone above; blur the row so a camera cannot pick up its neighbour. */
+  .bt-buy-section:has(.bt-qr-dialog[open]) .bt-method-grid {
+    filter: blur(0.35rem);
   }
 
   .bt-method {
@@ -764,6 +821,82 @@ const successReview = fillTemplate(copy.success.review, { hours: reviewHours });
   .bt-dialog-close:focus-visible {
     outline: 2px solid var(--bt-brand);
     outline-offset: 2px;
+  }
+
+  .bt-order-dialog {
+    width: min(38rem, calc(100vw - 2rem));
+    max-height: calc(100dvh - 2rem);
+    margin: auto;
+    border: 1px solid var(--bt-border);
+    border-radius: 1.1rem;
+    padding: 0;
+    overflow: auto;
+    background: var(--bt-surface);
+    color: var(--bt-ink);
+  }
+
+  .bt-order-dialog::backdrop {
+    background: rgb(0 0 0 / 0.52);
+  }
+
+  .bt-order-dialog-body {
+    display: grid;
+    gap: 0.9rem;
+    padding: clamp(1.1rem, 3vw, 1.6rem);
+  }
+
+  .bt-order-dialog-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .bt-order-dialog-head h2 {
+    margin: 0;
+    color: var(--bt-ink);
+    font-size: clamp(1.25rem, 2.4vw, 1.55rem);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  .bt-order-dialog-head p {
+    margin: 0.45rem 0 0;
+    color: var(--bt-muted);
+    font-size: 0.84rem;
+    line-height: 1.6;
+  }
+
+  .bt-order-close {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 2.1rem;
+    height: 2.1rem;
+    border: 1px solid var(--bt-border);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--bt-muted);
+    cursor: pointer;
+  }
+
+  .bt-order-close:hover {
+    border-color: var(--bt-brand);
+    color: var(--bt-brand-strong);
+  }
+
+  .bt-order-close:focus-visible {
+    outline: 2px solid var(--bt-brand);
+    outline-offset: 2px;
+  }
+
+  .bt-order-dialog .bt-form {
+    margin-top: 0.2rem;
+  }
+
+  .bt-order-dialog .bt-result {
+    max-width: none;
+    margin-top: 0.2rem;
   }
 
   .bt-noscript,
@@ -1085,7 +1218,8 @@ const successReview = fillTemplate(copy.success.review, { hours: reviewHours });
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .bt-zoom {
+    .bt-zoom,
+    .bt-method-grid {
       transition: none;
     }
   }
