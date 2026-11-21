@@ -1,0 +1,27 @@
+---
+interface Props {
+  /** Copy containing a single `{email}` placeholder. */
+  template: string;
+  email: string;
+}
+
+const { template, email } = Astro.props;
+const [before = '', after = ''] = template.split('{email}');
+
+const ESCAPES: Record<string, string> = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+};
+
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>"']/g, (character) => ESCAPES[character] ?? character);
+}
+
+// One string keeps the copy and the link inline; splitting into separate nodes would add whitespace.
+const html = `${before}<a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a>${after}`;
+---
+
+<span set:html={html} />

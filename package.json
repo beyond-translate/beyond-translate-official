@@ -1,0 +1,43 @@
+{
+  "name": "beyond-translate-official",
+  "version": "0.0.0",
+  "private": true,
+  "description": "译无界 · Beyond Translate 的官网与帮助文档。",
+  "license": "MIT",
+  "author": "Nicholas Hsiang",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "packageManager": "pnpm@11.25.0",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "oxlint src scripts tests",
+    "test": "vitest run",
+    "og:image": "node scripts/generate-og.mjs"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "0.43.1",
+    "@fontsource-variable/geist": "^5.3.0",
+    "@fontsource-variable/geist-mono": "^5.3.0",
+    "@lucide/astro": "^1.75.0",
+    "astro": "7.4.12"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.12",
+    "@types/qrcode": "^1.5.6",
+    "oxlint": "^1.94.0",
+    "prettier": "^3.10.1",
+    "prettier-plugin-astro": "^1.1.2",
+    "qrcode": "^1.5.4",
+    "sharp": "^0.35.5",
+    "starlight-links-validator": "^0.27.0",
+    "typescript": "~6.0.3",
+    "vitest": "^5.1.1"
+  }
+}

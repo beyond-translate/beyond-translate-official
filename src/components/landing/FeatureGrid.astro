@@ -1,0 +1,140 @@
+---
+import { Columns3, Cpu, MousePointer2, NotebookPen, ShieldCheck, SlidersHorizontal } from '@lucide/astro';
+
+import SectionHeading from '@/components/landing/SectionHeading.astro';
+import { getLanding } from '@/i18n/landing';
+
+interface Props {
+  lang?: string;
+}
+
+const { lang } = Astro.props;
+const copy = getLanding(lang);
+
+const features = [
+  { id: 'privacy', icon: ShieldCheck },
+  { id: 'rules', icon: SlidersHorizontal },
+  { id: 'memory', icon: NotebookPen },
+  { id: 'selection', icon: MousePointer2 },
+  { id: 'compare', icon: Columns3 },
+  { id: 'engine', icon: Cpu },
+] as const;
+---
+
+<section id="features" class="bt-features" aria-labelledby="features-title">
+  <SectionHeading
+    id="features-title"
+    index="01"
+    kicker={copy.kickers.features}
+    title={copy.features.heading}
+    intro={copy.features.intro}
+  />
+
+  <ul class="bt-feature-grid">
+    {features.map(({ id, icon: Icon }) => (
+      <li class="bt-feature-card">
+        <span class="bt-feature-icon" aria-hidden="true">
+          <Icon size={20} stroke-width={1.7} />
+        </span>
+        <h3>{copy.features.items[id].title}</h3>
+        <p>{copy.features.items[id].body}</p>
+      </li>
+    ))}
+  </ul>
+
+  <p class="bt-feature-more">{copy.features.more}</p>
+</section>
+
+<style>
+  .bt-features {
+    padding-block: clamp(3rem, 7vw, 5.5rem);
+    border-top: 1px solid var(--bt-border);
+  }
+
+  .bt-feature-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.9rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .bt-feature-card {
+    display: grid;
+    align-content: start;
+    gap: 0.6rem;
+    border: 1px solid var(--bt-border);
+    border-radius: 1rem;
+    padding: 1.25rem;
+    background: color-mix(in oklab, var(--bt-surface) 72%, transparent);
+    transition:
+      border-color 180ms ease,
+      background-color 180ms ease,
+      translate 180ms ease;
+  }
+
+  .bt-feature-card:hover {
+    border-color: color-mix(in oklab, var(--bt-brand) 42%, var(--bt-border));
+    background: var(--bt-surface);
+    translate: 0 -2px;
+  }
+
+  .bt-feature-icon {
+    display: grid;
+    place-items: center;
+    width: 2.35rem;
+    height: 2.35rem;
+    border-radius: 0.65rem;
+    background: var(--bt-brand-soft);
+    color: var(--bt-brand);
+  }
+
+  .bt-feature-card h3 {
+    margin: 0.35rem 0 0;
+    color: var(--bt-ink);
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .bt-feature-card p {
+    margin: 0;
+    color: var(--bt-muted);
+    font-size: 0.875rem;
+    line-height: 1.7;
+    text-wrap: pretty;
+  }
+
+  .bt-feature-more {
+    margin: 1.5rem 0 0;
+    color: var(--bt-faint);
+    font-size: 0.82rem;
+  }
+
+  @media (max-width: 64rem) {
+    .bt-feature-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 40rem) {
+    .bt-feature-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .bt-feature-card {
+      padding: 1.1rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bt-feature-card {
+      transition: none;
+    }
+
+    .bt-feature-card:hover {
+      translate: none;
+    }
+  }
+</style>

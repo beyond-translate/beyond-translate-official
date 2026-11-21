@@ -1,0 +1,361 @@
+---
+import { LinkButton } from '@astrojs/starlight/components';
+import { Crown, Moon, Sun } from '@lucide/astro';
+
+import ProductPreview from '@/components/landing/ProductPreview.astro';
+import { purchaseConfig } from '@/config/purchase';
+import { storeIds, storeLogos, storeUrls } from '@/config/stores';
+import { getLanding } from '@/i18n/landing';
+import { getPurchaseStrings, localePath, purchasePath } from '@/i18n/purchase';
+import { withBase } from '@/lib/url';
+
+const { entry, lang: routeLang } = Astro.locals.starlightRoute;
+// Starlight exposes the zh-hant locale as zh-TW so its built-in UI copy is Traditional Chinese.
+const lang = routeLang === 'zh-TW' ? 'zh-Hant' : routeLang;
+const { data } = entry;
+const { title = data.title, tagline, actions = [] } = data.hero ?? {};
+const copy = getLanding(lang);
+const purchase = getPurchaseStrings(lang);
+const purchaseOpen = purchaseConfig.enabled;
+// With a purchase call to action on the page, the existing primary action becomes secondary.
+const heroActions = purchaseOpen
+  ? actions.map((action) => (action.variant === 'primary' ? { ...action, variant: 'secondary' as const } : action))
+  : actions;
+
+const isEnglish = lang === 'en';
+const isSimplified = lang === 'zh-CN';
+const isTraditional = lang === 'zh-Hant';
+const simplifiedHref = withBase('/zh-cn/');
+const englishHref = withBase('/');
+const traditionalHref = withBase('/zh-hant/');
+
+const actionHref = (link: string) =>
+  /^(?:[a-z][a-z0-9+.-]*:|\/\/|#|\/)/i.test(link) ? withBase(link) : withBase(localePath(lang, link));
+
+const stores = storeIds.map((id, index) => ({
+  label: copy.release.browsers[index] ?? id,
+  href: storeUrls[id],
+  logo: withBase(storeLogos[id]),
+}));
+---
+
+<section class="bt-hero" data-lang={lang} aria-labelledby="_top">
+  <div class="bt-hero-copy">
+    <div class="bt-mobile-tools">
+      <nav class="bt-mobile-lang" aria-label={copy.tools.language}>
+        <a href={simplifiedHref} data-bt-lang-link data-lang="zh-CN" aria-current={isSimplified ? 'page' : undefined}>
+          简体
+        </a>
+        <a href={traditionalHref} data-bt-lang-link data-lang="zh-TW" aria-current={isTraditional ? 'page' : undefined}>
+          繁體
+        </a>
+        <a href={englishHref} data-bt-lang-link data-lang="en" aria-current={isEnglish ? 'page' : undefined}>
+          EN
+        </a>
+      </nav>
+      <button type="button" class="bt-mobile-theme" data-bt-theme-toggle aria-label={copy.tools.theme}>
+        <span class="bt-theme-moon" aria-hidden="true">
+          <Moon size={15} stroke-width={1.8} />
+        </span>
+        <span class="bt-theme-sun" aria-hidden="true">
+          <Sun size={15} stroke-width={1.8} />
+        </span>
+      </button>
+    </div>
+
+    <p class="bt-eyebrow">
+      <span class="bt-eyebrow-dot" aria-hidden="true"></span>
+      {copy.eyebrow}
+    </p>
+    <h1 id="_top" data-page-title class="bt-hero-title" set:html={title} />
+    {tagline && <p class="bt-hero-tagline" set:html={tagline} />}
+    <div class="bt-hero-actions">
+      {purchaseOpen && (
+        <LinkButton href={withBase(purchasePath(lang))} variant="primary">
+          {purchase.entry.heroCta}
+          <Crown size="1.5rem" stroke-width={1.8} aria-hidden="true" />
+        </LinkButton>
+      )}
+      {heroActions.map(({ text, link, variant, icon, attrs = {} }) => (
+        <LinkButton href={actionHref(link)} variant={variant} icon={icon?.name} {...attrs}>
+          {text}
+          {icon?.html && <Fragment set:html={icon.html} />}
+        </LinkButton>
+      ))}
+    </div>
+    <div class="bt-hero-stores">
+      <span class="bt-hero-stores-label">{copy.stores.label}</span>
+      {stores.map((store) => (
+        <a class="bt-hero-store" href={store.href} target="_blank" rel="noopener noreferrer">
+          <img class="bt-hero-store-logo" src={store.logo} alt="" width="18" height="18" />
+          {store.label}
+        </a>
+      ))}
+    </div>
+    <p class="bt-hero-status">
+      <span class="bt-hero-status-dot" aria-hidden="true"></span>
+      {copy.status}
+    </p>
+  </div>
+
+  <ProductPreview lang={lang} class="bt-hero-preview" />
+</section>
+
+<style>
+  .bt-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(2rem, 5vw, 5rem);
+    padding-block: clamp(2.5rem, 6vw, 5.5rem) clamp(3rem, 7vw, 6rem);
+  }
+
+  .bt-hero-copy {
+    max-width: 39rem;
+  }
+
+  .bt-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin: 0;
+    border: 1px solid var(--bt-border);
+    border-radius: 999px;
+    padding: 0.35rem 0.8rem;
+    background: color-mix(in oklab, var(--bt-surface) 70%, transparent);
+    color: var(--bt-muted);
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+
+  .bt-eyebrow-dot {
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 999px;
+    background: var(--bt-brand);
+    box-shadow: 0 0 0 4px var(--bt-brand-soft);
+  }
+
+  .bt-hero-title {
+    margin: 1.35rem 0 0;
+    color: var(--bt-ink);
+    font-size: clamp(2.6rem, 5.4vw, 4.7rem);
+    font-weight: 600;
+    letter-spacing: -0.045em;
+    line-height: 1.04;
+    text-wrap: balance;
+  }
+
+  .bt-hero-tagline {
+    max-width: 36rem;
+    margin: 1.5rem 0 0;
+    color: var(--bt-muted);
+    font-size: clamp(1rem, 1.2vw, 1.15rem);
+    line-height: 1.75;
+    text-wrap: balance;
+  }
+
+  .bt-hero[data-lang='en'] .bt-hero-title {
+    font-size: clamp(2.15rem, 5vw, 4.7rem);
+  }
+
+  .bt-hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 2rem;
+  }
+
+  .bt-hero-actions :global(.sl-link-button) {
+    margin: 0;
+    border-radius: 999px;
+    font-size: 0.95rem;
+    font-weight: 500;
+  }
+
+  .bt-hero-stores {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 0.65rem;
+    margin-top: 1.15rem;
+  }
+
+  .bt-hero-stores-label {
+    color: var(--bt-faint);
+    font-size: 0.76rem;
+    letter-spacing: 0.01em;
+  }
+
+  .bt-hero-store {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.42rem;
+    border: 1px solid var(--bt-border);
+    border-radius: 999px;
+    padding: 0.26rem 0.7rem 0.26rem 0.5rem;
+    background: color-mix(in oklab, var(--bt-surface) 70%, transparent);
+    color: var(--bt-muted);
+    font-size: 0.78rem;
+    font-weight: 500;
+    line-height: 1.4;
+    text-decoration: none;
+    transition:
+      border-color 150ms ease,
+      background-color 150ms ease,
+      color 150ms ease;
+  }
+
+  .bt-hero-store:hover {
+    border-color: var(--bt-brand);
+    background: var(--bt-brand-soft);
+    color: var(--bt-ink);
+  }
+
+  .bt-hero-store-logo {
+    display: block;
+    width: 1.05rem;
+    height: 1.05rem;
+    object-fit: contain;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bt-hero-store {
+      transition: none;
+    }
+  }
+
+  .bt-hero-status {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin: 1.35rem 0 0;
+    color: var(--bt-faint);
+    font-size: 0.8rem;
+    line-height: 1.5;
+  }
+
+  .bt-hero-status-dot {
+    flex: none;
+    width: 0.4rem;
+    height: 0.4rem;
+    margin-top: 0.5em;
+    border-radius: 999px;
+    background: var(--bt-faint);
+  }
+
+  .bt-mobile-tools {
+    display: none;
+  }
+
+  @media (max-width: 50rem) {
+    .bt-mobile-tools {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 0.5rem;
+      margin-bottom: 0.9rem;
+    }
+
+    .bt-mobile-lang {
+      display: flex;
+      gap: 0.1rem;
+      border: 1px solid var(--bt-border);
+      border-radius: 999px;
+      padding: 0.15rem;
+      background: color-mix(in oklab, var(--bt-surface) 70%, transparent);
+    }
+
+    .bt-mobile-lang a {
+      border-radius: 999px;
+      padding: 0.22rem 0.5rem;
+      color: var(--bt-muted);
+      font-size: 0.72rem;
+      text-decoration: none;
+    }
+
+    .bt-mobile-lang a[aria-current='page'] {
+      background: var(--bt-brand);
+      color: var(--bt-brand-ink);
+    }
+
+    .bt-mobile-theme {
+      display: grid;
+      place-items: center;
+      width: 2rem;
+      height: 2rem;
+      border: 1px solid var(--bt-border);
+      border-radius: 999px;
+      background: var(--bt-surface);
+      color: var(--bt-muted);
+      cursor: pointer;
+    }
+
+    .bt-theme-moon,
+    .bt-theme-sun {
+      display: grid;
+      place-items: center;
+    }
+
+    .bt-theme-sun {
+      display: none;
+    }
+
+    :global(:root[data-theme='dark']) .bt-theme-sun {
+      display: grid;
+    }
+
+    :global(:root[data-theme='dark']) .bt-theme-moon {
+      display: none;
+    }
+  }
+
+  @media (max-width: 64rem) {
+    .bt-hero {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 3rem;
+      padding-block: 2.5rem 4rem;
+    }
+
+    .bt-hero-copy {
+      max-width: 42rem;
+    }
+  }
+
+  @media (max-width: 48rem) {
+    .bt-hero-actions :global(.sl-link-button) {
+      padding-block: 0.7rem;
+    }
+  }
+</style>
+
+<script>
+  const themeButtons = document.querySelectorAll<HTMLButtonElement>('[data-bt-theme-toggle]');
+  for (const button of themeButtons) {
+    button.addEventListener('click', () => {
+      const root = document.documentElement;
+      const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+      root.dataset.theme = next;
+      try {
+        localStorage.setItem('starlight-theme', next);
+      } catch {
+        // Storage can be unavailable in private modes; the theme still changes for this page.
+      }
+    });
+  }
+
+  const languageLinks = document.querySelectorAll<HTMLAnchorElement>('[data-bt-lang-link]');
+  for (const link of languageLinks) {
+    link.addEventListener('click', () => {
+      const value = link.dataset.lang;
+      if (!value) return;
+      try {
+        localStorage.setItem('beyond-translate-lang', value);
+      } catch {
+        // Storage can be unavailable in private modes; the link still navigates.
+      }
+    });
+  }
+</script>

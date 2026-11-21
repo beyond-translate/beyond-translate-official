@@ -1,0 +1,193 @@
+---
+import iconUrl from '@/assets/icon.svg';
+import { purchaseConfig } from '@/config/purchase';
+import { getLanding } from '@/i18n/landing';
+import { getPurchaseStrings, localeHome, localePath, purchasePath } from '@/i18n/purchase';
+import { withBase } from '@/lib/url';
+
+interface Props {
+  lang?: string;
+}
+
+const { lang } = Astro.props;
+const copy = getLanding(lang);
+const purchase = getPurchaseStrings(lang);
+const iconSrc = typeof iconUrl === 'string' ? iconUrl : iconUrl.src;
+
+// The first group is the product group in every language; the purchase link joins it only while sales are open.
+const groups = purchaseConfig.enabled
+  ? copy.footer.groups.map((group, index) =>
+      index === 0
+        ? { ...group, links: [{ label: purchase.entry.footerLink, href: purchasePath(lang) }, ...group.links] }
+        : group,
+    )
+  : copy.footer.groups;
+---
+
+<div class="bt-site-footer">
+  <div class="bt-footer-top">
+    <div class="bt-footer-brand">
+      <a class="bt-footer-lockup" href={withBase(localeHome(lang))}>
+        <img src={iconSrc} alt="" width="32" height="32" />
+        <span>
+          <strong>{copy.footer.brandName}</strong>
+          <small>{copy.footer.brandSub}</small>
+        </span>
+      </a>
+      <p>{copy.footer.tagline}</p>
+    </div>
+
+    <nav class="bt-footer-nav" aria-label={copy.footer.navLabel}>
+      {groups.map((group) => (
+        <div>
+          <p class="bt-footer-group-title">{group.title}</p>
+          <ul>
+            {group.links.map((link) => (
+              <li>
+                <a
+                  href={
+                    link.external
+                      ? link.href
+                      : withBase(link.href.startsWith('/') ? link.href : localePath(lang, link.href))
+                  }
+                  target={link.external ? '_blank' : undefined}
+                  rel={link.external ? 'noopener noreferrer' : undefined}
+                >
+                  {link.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </nav>
+  </div>
+
+  <div class="bt-footer-bottom">
+    <span>{copy.footer.legal}</span>
+  </div>
+</div>
+
+<style>
+  .bt-site-footer {
+    margin-top: clamp(2rem, 5vw, 4rem);
+    border-top: 1px solid var(--bt-border);
+    padding-block: 2.5rem 1.5rem;
+  }
+
+  .bt-footer-top {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.4fr);
+    gap: 2rem 4rem;
+  }
+
+  .bt-footer-brand {
+    display: grid;
+    align-content: start;
+    gap: 0.8rem;
+  }
+
+  .bt-footer-lockup {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    color: var(--bt-ink);
+    text-decoration: none;
+  }
+
+  .bt-footer-lockup img {
+    border-radius: 0.55rem;
+  }
+
+  .bt-footer-lockup span {
+    display: grid;
+    line-height: 1.15;
+  }
+
+  .bt-footer-lockup strong {
+    font-size: 1.05rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .bt-footer-lockup small {
+    color: var(--bt-faint);
+    font-size: 0.66rem;
+  }
+
+  .bt-footer-brand > p {
+    max-width: 24rem;
+    margin: 0;
+    color: var(--bt-muted);
+    font-size: 0.82rem;
+    line-height: 1.6;
+  }
+
+  .bt-footer-nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem;
+  }
+
+  .bt-footer-group-title {
+    margin: 0 0 0.65rem;
+    color: var(--bt-faint);
+    font-family: var(--bt-font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .bt-footer-nav ul {
+    display: grid;
+    gap: 0.45rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .bt-footer-nav a {
+    color: var(--bt-muted);
+    font-size: 0.82rem;
+    text-decoration: none;
+    transition: color 160ms ease;
+  }
+
+  .bt-footer-nav a:hover {
+    color: var(--bt-brand);
+  }
+
+  .bt-footer-bottom {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 2.5rem;
+    border-top: 1px solid var(--bt-border);
+    padding-top: 1rem;
+    color: var(--bt-faint);
+    font-size: 0.72rem;
+    line-height: 1.5;
+  }
+
+  @media (max-width: 56rem) {
+    .bt-footer-top {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  @media (max-width: 36rem) {
+    .bt-footer-nav {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .bt-footer-bottom {
+      display: block;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bt-footer-nav a {
+      transition: none;
+    }
+  }
+</style>

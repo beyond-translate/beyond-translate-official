@@ -1,0 +1,115 @@
+---
+import { BookOpenText, MessageSquare } from '@lucide/astro';
+
+import { getPurchaseStrings, helpPath } from '@/i18n/purchase';
+import { withBase } from '@/lib/url';
+
+interface Props {
+  lang: string;
+}
+
+const { lang } = Astro.props;
+const copy = getPurchaseStrings(lang);
+const feedbackUrl = 'https://github.com/beyond-translate/feedback/issues';
+---
+
+<section class="bt-purchase-closed" aria-label={copy.closed.title}>
+  <p class="bt-purchase-kicker">{copy.closed.kicker}</p>
+  <p class="bt-purchase-body">{copy.closed.body}</p>
+  <div class="bt-purchase-actions">
+    <a class="bt-purchase-action is-primary" href={feedbackUrl} target="_blank" rel="noopener noreferrer">
+      <MessageSquare size={17} stroke-width={1.8} aria-hidden="true" />
+      {copy.closed.feedbackCta}
+    </a>
+    <a class="bt-purchase-action" href={withBase(helpPath(lang))}>
+      <BookOpenText size={17} stroke-width={1.8} aria-hidden="true" />
+      {copy.closed.helpCta}
+    </a>
+  </div>
+</section>
+
+<style>
+  .bt-purchase-closed {
+    display: grid;
+    justify-items: start;
+    gap: 1.1rem;
+    max-width: 42rem;
+    padding: clamp(1.4rem, 4vw, 2.6rem);
+    border: 1px solid color-mix(in oklab, var(--bt-brand) 28%, var(--bt-border));
+    border-radius: 1.15rem;
+    background:
+      radial-gradient(circle at 0% 0%, var(--bt-brand-soft), transparent 45%),
+      color-mix(in oklab, var(--bt-surface) 72%, transparent);
+  }
+
+  .bt-purchase-kicker {
+    margin: 0;
+    color: var(--bt-brand);
+    font-family: var(--bt-font-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .bt-purchase-body {
+    margin: 0;
+    color: var(--bt-muted);
+    font-size: 1rem;
+    line-height: 1.75;
+    text-wrap: pretty;
+  }
+
+  .bt-purchase-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-top: 0.4rem;
+  }
+
+  .bt-purchase-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2.6rem;
+    padding: 0.55rem 0.95rem;
+    border: 1px solid var(--bt-border-strong);
+    border-radius: 999px;
+    color: var(--bt-ink);
+    font-size: 0.88rem;
+    font-weight: 500;
+    text-decoration: none;
+  }
+
+  .bt-purchase-action:hover {
+    border-color: var(--bt-brand);
+    color: var(--bt-brand-strong);
+  }
+
+  .bt-purchase-action.is-primary {
+    border-color: transparent;
+    background: var(--bt-brand);
+    color: var(--bt-brand-ink);
+  }
+
+  .bt-purchase-action.is-primary:hover {
+    background: var(--bt-brand-strong);
+    color: var(--bt-brand-ink);
+  }
+
+  .bt-purchase-action:focus-visible {
+    outline: 2px solid var(--bt-brand);
+    outline-offset: 2px;
+  }
+
+  @media (max-width: 32rem) {
+    .bt-purchase-actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .bt-purchase-action {
+      justify-content: center;
+    }
+  }
+</style>

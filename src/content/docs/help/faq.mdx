@@ -1,0 +1,69 @@
+---
+title: FAQ
+description: Installation, API keys, privacy, browser support, licenses and purchases.
+---
+
+import { storeUrls } from '@/config/stores';
+
+## Where can I install it?
+
+<p>
+  Install Beyond Translate from the <a href={storeUrls.chrome}>Chrome Web Store</a>,{' '}
+  <a href={storeUrls.edge}>Microsoft Edge Add-ons</a> or <a href={storeUrls.firefox}>Firefox Add-ons</a>, then pin the
+  extension to the toolbar.
+</p>
+
+## Do I need my own API key?
+
+No. The built-in Google Translate and Bing Translate free endpoints work without any configuration. A Simplified Chinese interface defaults to Bing Translate; other interfaces default to Google Translate. Once you add your first model entry, that model becomes the default.
+
+Add your own credentials only when you want a better model or an official cloud machine translation API. See [Machine translation services](machine-translation/) for the guides.
+
+## Which browsers are supported?
+
+Chromium-based browsers (Chrome 111+, Edge) and Firefox 136+, on Manifest V3.
+
+## Does translation upload my pages?
+
+Only the text that needs translating is sent to the service you choose:
+
+- With a free endpoint, the text goes to Google or Microsoft.
+- With the official Google Cloud, Azure, Alibaba Cloud or Volcengine API, the text goes to your own cloud account.
+- With fallback translation enabled, full-page paragraphs that still fail after the model recovers are sent to the chosen fallback machine translation service.
+
+The extension never records the source page, has no background analytics and shows no advertising. Firefox's installation data-collection declaration describes this behavior.
+
+## Where are API keys and sync credentials stored?
+
+API keys, cloud access keys, cloud-drive authorization, GitHub tokens and WebDAV passwords are stored only in the extension's local storage. Content scripts cannot read them. They travel with encrypted backups and sync, but never appear in logs or error messages.
+
+## Are backups and sync safe?
+
+Backups and sync files are always encrypted with a data key. A backup can be exported as a `.zip`, or uploaded and downloaded manually through Gist or Dropbox, Google Drive, OneDrive or WebDAV. Upload, download, history and restore happen only when the user starts them; nothing runs automatically.
+
+## Are there paid features?
+
+Selection translation, full-page translation, the notebook and the page archive are free. Backup/restore and writing site rules require a one-time license with no auto-renewal. Licenses are sold on the [purchase page](../../buy/), which opens when the extension is listed; a license is bound to the purchase email, allows up to 5 simultaneous device activations, never expires, and devices can be deactivated at any time to free a slot. Unactivated licenses can be refunded through support; activated licenses cannot.
+
+License state is stored only on the device and never enters backups or sync. Activate it in the License section of the extension settings with the purchase email.
+
+## How do I buy a license?
+
+1. On the [purchase page](../../buy/), choose a payment method and pay the amount shown. If a QR code does not include the amount, enter the displayed amount manually; USDT must be sent on the network shown on the page — sending on another network loses the funds.
+2. After paying, return to the purchase page and enter your purchase email, payment method and transaction number, then complete the human verification. Transaction numbers are 6–66 letters, digits, underscores or hyphens; the page explains where to find them for each method.
+3. Wait for manual review. Once approved, you receive the license-ready email; submit each payment only once.
+4. Activate in the License section of the extension with the same purchase email.
+
+Prices, available payment methods, review time and the support email are shown on the purchase page; before sales open, the page only shows a notice.
+
+## Does it work offline?
+
+No. Translation calls the selected service. Without a network, content that is already cached or stored in the page archive can still be shown.
+
+## Are translations saved?
+
+The translation cache is local and only reuses successful translations; it never enters backups or sync. The page archive is optional: after saving manually or through site rules, reopening the same page can show the translations immediately without calling the service again.
+
+## Does this website collect visitor data?
+
+No. Pages other than the purchase page use no cookies, load no third-party analytics and collect no visitor data. While sales are open, the purchase page loads Cloudflare Turnstile for human verification. See [Privacy](privacy/) for the extension's own privacy boundary.

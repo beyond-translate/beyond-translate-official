@@ -1,0 +1,27 @@
+# build output
+dist/
+.astro/
+
+# dependencies
+node_modules/
+
+# editor and OS files
+.DS_Store
+.vscode/
+.idea/
+
+# local environment
+.env
+.env.*
+!.env.example
+
+# logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# test output
+coverage/
+
+# local verification artifacts
+.scratch/

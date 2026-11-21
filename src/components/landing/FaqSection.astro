@@ -1,0 +1,111 @@
+---
+import SectionHeading from '@/components/landing/SectionHeading.astro';
+import { getLanding } from '@/i18n/landing';
+
+interface Props {
+  lang?: string;
+}
+
+const { lang } = Astro.props;
+const copy = getLanding(lang);
+---
+
+<section id="faq" class="bt-faq" aria-labelledby="faq-title">
+  <SectionHeading id="faq-title" index="05" kicker={copy.kickers.faq} title={copy.faq.heading} />
+
+  <div class="bt-faq-list">
+    {copy.faq.items.map((item, index) => (
+      <details class="bt-faq-item" open={index === 0}>
+        <summary>
+          <span>{item.question}</span>
+          <span class="bt-faq-mark" aria-hidden="true"></span>
+        </summary>
+        <p>{item.answer}</p>
+      </details>
+    ))}
+  </div>
+</section>
+
+<style>
+  .bt-faq {
+    padding-block: clamp(3rem, 7vw, 5.5rem);
+    border-top: 1px solid var(--bt-border);
+  }
+
+  .bt-faq-list {
+    max-width: 50rem;
+    border-top: 1px solid var(--bt-border);
+  }
+
+  .bt-faq-item {
+    border-bottom: 1px solid var(--bt-border);
+  }
+
+  .bt-faq-item summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.05rem 0.1rem;
+    color: var(--bt-ink);
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .bt-faq-item summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .bt-faq-item summary:focus-visible {
+    border-radius: 0.35rem;
+    outline: 2px solid var(--bt-brand);
+    outline-offset: 3px;
+  }
+
+  .bt-faq-mark {
+    position: relative;
+    flex: none;
+    width: 0.7rem;
+    height: 0.7rem;
+    color: var(--bt-brand);
+  }
+
+  .bt-faq-mark::before,
+  .bt-faq-mark::after {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    top: 50%;
+    height: 1.5px;
+    border-radius: 999px;
+    background: currentColor;
+    transition: rotate 180ms ease;
+  }
+
+  .bt-faq-mark::after {
+    rotate: 90deg;
+  }
+
+  .bt-faq-item[open] .bt-faq-mark::after {
+    rotate: 0deg;
+  }
+
+  .bt-faq-item p {
+    max-width: 44rem;
+    margin: 0;
+    padding: 0 1.8rem 1.2rem 0.1rem;
+    color: var(--bt-muted);
+    font-size: 0.875rem;
+    line-height: 1.75;
+    text-wrap: pretty;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bt-faq-mark::before,
+    .bt-faq-mark::after {
+      transition: none;
+    }
+  }
+</style>

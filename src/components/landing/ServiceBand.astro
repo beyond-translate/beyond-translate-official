@@ -1,0 +1,135 @@
+---
+import { getLanding } from '@/i18n/landing';
+import SectionHeading from '@/components/landing/SectionHeading.astro';
+
+interface Props {
+  lang?: string;
+}
+
+const { lang } = Astro.props;
+const copy = getLanding(lang);
+---
+
+<section id="services" class="bt-services" aria-labelledby="services-title">
+  <SectionHeading
+    id="services-title"
+    index="03"
+    kicker={copy.kickers.services}
+    title={copy.services.heading}
+    intro={copy.services.intro}
+  />
+
+  <div class="bt-services-panel">
+    <dl class="bt-stats">
+      {copy.services.stats.map((stat) => (
+        <div class="bt-stat">
+          <dt>{stat.label}</dt>
+          <dd>{stat.value}</dd>
+        </div>
+      ))}
+    </dl>
+
+    <div class="bt-services-copy">
+      <p>{copy.services.body}</p>
+      <ul class="bt-chips" aria-label={copy.kickers.services}>
+        {copy.services.chips.map((chip) => (
+          <li>{chip}</li>
+        ))}
+      </ul>
+    </div>
+  </div>
+</section>
+
+<style>
+  .bt-services {
+    padding-block: clamp(3rem, 7vw, 5.5rem);
+    border-top: 1px solid var(--bt-border);
+  }
+
+  .bt-services-panel {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: clamp(1.5rem, 4vw, 3.5rem);
+    border: 1px solid var(--bt-border);
+    border-radius: 1.1rem;
+    padding: clamp(1.25rem, 3vw, 2rem);
+    background:
+      radial-gradient(circle at 0% 0%, var(--bt-brand-soft), transparent 38%),
+      color-mix(in oklab, var(--bt-surface) 72%, transparent);
+  }
+
+  .bt-stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.2rem 1rem;
+    margin: 0;
+  }
+
+  .bt-stat {
+    display: grid;
+    gap: 0.25rem;
+    border-inline-start: 1px solid var(--bt-border);
+    padding-inline-start: 0.85rem;
+  }
+
+  .bt-stat dt {
+    color: var(--bt-muted);
+    font-size: 0.75rem;
+    line-height: 1.4;
+  }
+
+  .bt-stat dd {
+    order: -1;
+    margin: 0;
+    color: var(--bt-ink);
+    font-family: var(--bt-font-mono);
+    font-size: clamp(1.6rem, 3vw, 2.25rem);
+    font-weight: 500;
+    letter-spacing: -0.04em;
+    line-height: 1;
+  }
+
+  .bt-services-copy p {
+    margin: 0;
+    color: var(--bt-muted);
+    font-size: 0.9rem;
+    line-height: 1.75;
+    text-wrap: pretty;
+  }
+
+  .bt-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 1.1rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .bt-chips li {
+    border: 1px solid var(--bt-border);
+    border-radius: 999px;
+    padding: 0.25rem 0.6rem;
+    background: color-mix(in oklab, var(--bt-surface) 80%, transparent);
+    color: var(--bt-muted);
+    font-family: var(--bt-font-mono);
+    font-size: 0.65rem;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 56rem) {
+    .bt-services-panel {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  @media (max-width: 30rem) {
+    .bt-stats {
+      gap: 0.9rem;
+    }
+
+    .bt-stat dd {
+      font-size: 1.5rem;
+    }
+  }
+</style>

@@ -1,0 +1,30 @@
+---
+import FaqSection from '@/components/landing/FaqSection.astro';
+import FeatureGrid from '@/components/landing/FeatureGrid.astro';
+import LandingFooter from '@/components/landing/LandingFooter.astro';
+import PrivacySection from '@/components/landing/PrivacySection.astro';
+import ReleaseStatus from '@/components/landing/ReleaseStatus.astro';
+import ServiceBand from '@/components/landing/ServiceBand.astro';
+
+const lang = Astro.locals.starlightRoute.lang;
+---
+
+<div class="not-content bt-landing">
+  <FeatureGrid lang={lang} />
+  <PrivacySection lang={lang} />
+  <ServiceBand lang={lang} />
+  <ReleaseStatus lang={lang} />
+  <FaqSection lang={lang} />
+  <LandingFooter lang={lang} />
+</div>
+
+<style>
+  .bt-landing {
+    color: var(--bt-ink);
+    font-family: var(--bt-font-sans);
+  }
+
+  .bt-landing :global(a) {
+    color: inherit;
+  }
+</style>

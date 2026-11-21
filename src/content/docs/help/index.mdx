@@ -1,0 +1,33 @@
+---
+title: Help center
+description: Installation, first translation, translation services and common questions for Beyond Translate.
+---
+
+import { CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+import { storeUrls } from '@/config/stores';
+
+<p>
+  Beyond Translate is available on the <a href={storeUrls.chrome}>Chrome Web Store</a>,{' '}
+  <a href={storeUrls.edge}>Microsoft Edge Add-ons</a> and <a href={storeUrls.firefox}>Firefox Add-ons</a>. Install it
+  from your browser's store, then pin the extension to the toolbar.
+</p>
+
+<CardGrid>
+  <LinkCard
+    title="Getting started"
+    description="Selection translation, full-page translation, the toolbar, settings, the floating ball and pre-translation."
+    href="getting-started/"
+  />
+  <LinkCard
+    title="Machine translation services"
+    description="The free Google and Bing endpoints, plus official Google Cloud, Azure, Alibaba Cloud and Volcengine APIs."
+    href="machine-translation/"
+  />
+  <LinkCard
+    title="FAQ"
+    description="Installation, API keys, privacy, browser support and the license boundary."
+    href="faq/"
+  />
+  <LinkCard title="Privacy" description="Where keys, page text and backups go." href="privacy/" />
+</CardGrid>

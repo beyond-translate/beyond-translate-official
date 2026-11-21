@@ -1,0 +1,26 @@
+---
+title: 帮助中心
+description: Beyond Translate 的安装、第一次翻译、翻译服务配置与常见问题。
+---
+
+import { CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+import { storeUrls } from '@/config/stores';
+
+Beyond Translate 已在 <a href={storeUrls.chrome}>Chrome 应用商店</a>、<a href={storeUrls.edge}>Microsoft Edge 加载项</a>
+与 <a href={storeUrls.firefox}>Firefox 附加组件</a> 上架。请从所用浏览器的商店安装，然后把扩展固定到工具栏。
+
+<CardGrid>
+  <LinkCard
+    title="快速上手"
+    description="划词翻译、整页翻译、工具栏面板、设置页、悬浮球与预翻译。"
+    href="getting-started/"
+  />
+  <LinkCard
+    title="机器翻译服务"
+    description="免费的 Google / Bing 端点，以及 Google Cloud、Azure、阿里云与火山引擎官方 API。"
+    href="machine-translation/"
+  />
+  <LinkCard title="常见问题" description="安装方式、API Key、隐私、浏览器支持与许可边界。" href="faq/" />
+  <LinkCard title="隐私说明" description="密钥、网页文字与备份分别去了哪里。" href="privacy/" />
+</CardGrid>

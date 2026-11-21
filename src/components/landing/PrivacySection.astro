@@ -1,0 +1,151 @@
+---
+import { ArrowRight, EyeOff, KeyRound, LockKeyhole } from '@lucide/astro';
+
+import SectionHeading from '@/components/landing/SectionHeading.astro';
+import { getLanding } from '@/i18n/landing';
+import { localePath } from '@/i18n/purchase';
+import { withBase } from '@/lib/url';
+
+interface Props {
+  lang?: string;
+}
+
+const { lang } = Astro.props;
+const copy = getLanding(lang);
+
+const icons = [KeyRound, LockKeyhole, EyeOff];
+---
+
+<section id="privacy" class="bt-privacy" aria-labelledby="privacy-title">
+  <SectionHeading
+    id="privacy-title"
+    index="02"
+    kicker={copy.kickers.privacy}
+    title={copy.privacy.heading}
+    intro={copy.privacy.intro}
+  />
+
+  <div class="bt-privacy-panel">
+    <ul class="bt-privacy-list">
+      {copy.privacy.items.map((item, index) => {
+        const Icon = icons[index] ?? KeyRound;
+        return (
+          <li>
+            <span class="bt-privacy-icon" aria-hidden="true">
+              <Icon size={19} stroke-width={1.7} />
+            </span>
+            <div>
+              <h3>{item.title}</h3>
+              <p>{item.body}</p>
+            </div>
+          </li>
+        );
+      })}
+    </ul>
+
+    <a class="bt-privacy-link" href={withBase(localePath(lang, 'help/privacy/'))}>
+      {copy.privacy.link}
+      <ArrowRight size={15} stroke-width={1.8} aria-hidden="true" />
+    </a>
+  </div>
+</section>
+
+<style>
+  .bt-privacy {
+    padding-block: clamp(3rem, 7vw, 5.5rem);
+    border-top: 1px solid var(--bt-border);
+  }
+
+  .bt-privacy-panel {
+    display: grid;
+    gap: 1.25rem;
+  }
+
+  .bt-privacy-list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border: 1px solid var(--bt-border);
+    border-radius: 1.1rem;
+    background: color-mix(in oklab, var(--bt-surface) 65%, transparent);
+    overflow: hidden;
+  }
+
+  .bt-privacy-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.8rem;
+    padding: 1.3rem;
+  }
+
+  .bt-privacy-list li + li {
+    border-inline-start: 1px solid var(--bt-border);
+  }
+
+  .bt-privacy-icon {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 2.1rem;
+    height: 2.1rem;
+    border-radius: 0.55rem;
+    background: var(--bt-brand-soft);
+    color: var(--bt-brand);
+  }
+
+  .bt-privacy-list h3 {
+    margin: 0;
+    color: var(--bt-ink);
+    font-size: 0.92rem;
+    font-weight: 600;
+  }
+
+  .bt-privacy-list p {
+    margin: 0.35rem 0 0;
+    color: var(--bt-muted);
+    font-size: 0.82rem;
+    line-height: 1.65;
+    text-wrap: pretty;
+  }
+
+  .bt-privacy-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    justify-self: start;
+    border: 1px solid var(--bt-border-strong);
+    border-radius: 999px;
+    padding: 0.55rem 0.9rem;
+    color: var(--bt-ink);
+    font-size: 0.82rem;
+    text-decoration: none;
+    transition:
+      border-color 180ms ease,
+      color 180ms ease;
+  }
+
+  .bt-privacy-link:hover {
+    border-color: var(--bt-brand);
+    color: var(--bt-brand);
+  }
+
+  @media (max-width: 64rem) {
+    .bt-privacy-list {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .bt-privacy-list li + li {
+      border-inline-start: 0;
+      border-top: 1px solid var(--bt-border);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bt-privacy-link {
+      transition: none;
+    }
+  }
+</style>

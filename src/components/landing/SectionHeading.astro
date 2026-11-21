@@ -1,0 +1,68 @@
+---
+interface Props {
+  id: string;
+  index: string;
+  kicker: string;
+  title: string;
+  intro?: string;
+}
+
+const { id, index, kicker, title, intro } = Astro.props;
+---
+
+<header class="bt-section-head">
+  <p class="bt-section-kicker">
+    <span aria-hidden="true">{index}</span>
+    <span class="bt-section-line" aria-hidden="true"></span>
+    {kicker}
+  </p>
+  <h2 id={id}>{title}</h2>
+  {intro && <p class="bt-section-intro">{intro}</p>}
+</header>
+
+<style>
+  .bt-section-head {
+    display: grid;
+    gap: 0.8rem;
+    max-width: 44rem;
+    margin-bottom: clamp(1.8rem, 3.5vw, 2.8rem);
+  }
+
+  .bt-section-kicker {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin: 0;
+    color: var(--bt-brand);
+    font-family: var(--bt-font-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .bt-section-line {
+    width: 1.75rem;
+    height: 1px;
+    background: color-mix(in oklab, var(--bt-brand) 50%, transparent);
+  }
+
+  h2 {
+    margin: 0;
+    color: var(--bt-ink);
+    font-size: clamp(1.75rem, 3.2vw, 2.55rem);
+    font-weight: 600;
+    letter-spacing: -0.035em;
+    line-height: 1.15;
+    text-wrap: balance;
+  }
+
+  .bt-section-intro {
+    max-width: 40rem;
+    margin: 0;
+    color: var(--bt-muted);
+    font-size: 1rem;
+    line-height: 1.75;
+    text-wrap: pretty;
+  }
+</style>

@@ -1,0 +1,1108 @@
+---
+import { ZoomIn } from '@lucide/astro';
+import QRCode from 'qrcode';
+
+import { purchaseConfig, type PaymentMethodId } from '@/config/purchase';
+import { getPurchaseStrings } from '@/i18n/purchase';
+import { fillTemplate } from '@/lib/purchase';
+
+import { paymentLogos } from './payment-logos';
+import SupportEmail from './SupportEmail.astro';
+
+interface Props {
+  lang: string;
+}
+
+const { lang } = Astro.props;
+const copy = getPurchaseStrings(lang);
+
+const supportEmail = purchaseConfig.supportEmail;
+const reviewHours = purchaseConfig.reviewHours;
+const cnyPrice = purchaseConfig.price.cny;
+const usdtPrice = purchaseConfig.price.usdt;
+
+// These methods use a generic QR code with no amount; the buyer pays the CNY price manually.
+const MANUAL_AMOUNT_METHODS: ReadonlySet<PaymentMethodId> = new Set(['alipay', 'wechat']);
+
+function amountFor(method: PaymentMethodId): string {
+  return MANUAL_AMOUNT_METHODS.has(method) ? cnyPrice : usdtPrice;
+}
+
+const methods = await Promise.all(
+  purchaseConfig.paymentMethods
+    .filter((method) => method.enabled)
+    .map(async (method) => {
+      const label = copy.paymentMethods[method.id];
+      const amount = amountFor(method.id);
+      // Level H keeps the code scannable with the method logo covering the centre.
+      const svg = await QRCode.toString(method.payload, {
+        type: 'svg',
+        margin: 4,
+        width: 220,
+        errorCorrectionLevel: 'H',
+        color: { dark: '#000000', light: '#ffffff' },
+      });
+      return {
+        ...method,
+        label,
+        logo: paymentLogos[method.id],
+        manualAmount: MANUAL_AMOUNT_METHODS.has(method.id),
+        svg,
+        qrLabel: fillTemplate(copy.payment.qrLabel, { method: label, amount }),
+        zoomLabel: fillTemplate(copy.payment.zoom, { method: label }),
+        scanText: fillTemplate(copy.payment.scan[method.id], {
+          amount,
+          network: method.network ?? '',
+        }),
+        dialogId: `qr-${method.id}`,
+      };
+    }),
+);
+
+const steps = copy.steps.items.map((item) => fillTemplate(item, { amount: cnyPrice, hours: reviewHours }));
+const paymentHint = fillTemplate(copy.payment.hint, { cny: cnyPrice, usdt: usdtPrice });
+const amountNote = fillTemplate(copy.form.amountNote, { amount: cnyPrice });
+const hasManualAmountMethod = methods.some((method) => method.manualAmount);
+const successReview = fillTemplate(copy.success.review, { hours: reviewHours });
+---
+
+<div class="bt-buy">
+  <header class="bt-buy-hero">
+    <div class="bt-buy-intro">
+      <p class="bt-buy-kicker">{copy.hero.kicker}</p>
+      <p class="bt-buy-tagline">{copy.hero.title}</p>
+      <p class="bt-buy-lead">{copy.hero.intro}</p>
+      <p class="bt-steps-heading">{copy.steps.title}</p>
+      <ol class="bt-steps">
+        {steps.map((step) => (
+          <li>{step}</li>
+        ))}
+      </ol>
+      <p class="bt-buy-steps-note">{copy.steps.intro}</p>
+    </div>
+
+    <aside class="bt-price-card" aria-label={copy.price.oneTime}>
+      <p class="bt-price-one-time">{copy.price.oneTime}</p>
+      <div class="bt-price-row">
+        <span>{copy.price.cnyLabel}</span>
+        <strong>{cnyPrice}</strong>
+      </div>
+      <div class="bt-price-row">
+        <span>{copy.price.usdtLabel}</span>
+        <strong>{usdtPrice}</strong>
+      </div>
+      <p class="bt-price-note">{copy.price.note}</p>
+    </aside>
+  </header>
+
+  <section class="bt-buy-section" aria-labelledby="buy-payment-title">
+    <h2 id="buy-payment-title">{copy.payment.title}</h2>
+    <p class="bt-section-intro">{copy.payment.intro}</p>
+    <p class="bt-payment-hint">{paymentHint}</p>
+
+    <div class="bt-method-grid">
+      {methods.map((method) => (
+        <figure class="bt-method">
+          <button
+            type="button"
+            class="bt-qr-button"
+            data-qr-open={method.dialogId}
+            aria-haspopup="dialog"
+            aria-label={method.zoomLabel}
+          >
+            <span class="bt-qr" role="img" aria-label={method.qrLabel}>
+              <Fragment set:html={method.svg} />
+              <span class="bt-qr-logo" aria-hidden="true">
+                <Fragment set:html={method.logo} />
+              </span>
+            </span>
+            <span class="bt-zoom" aria-hidden="true">
+              <ZoomIn size={16} stroke-width={1.8} />
+            </span>
+          </button>
+          <figcaption class="bt-method-body">
+            <h3>{method.label}</h3>
+            {method.address && (
+              <div class="bt-address" data-address>
+                <code>{method.address}</code>
+                <button type="button" class="bt-copy" hidden data-copy-address={method.address}>
+                  {copy.payment.copy}
+                </button>
+              </div>
+            )}
+          </figcaption>
+        </figure>
+      ))}
+    </div>
+    <p class="bt-zoom-hint">{copy.payment.zoomHint}</p>
+    <p class="bt-visually-hidden" data-copy-status role="status"></p>
+
+    {methods.map((method) => (
+      <dialog
+        class="bt-qr-dialog"
+        id={method.dialogId}
+        aria-labelledby={`${method.dialogId}-title`}
+        aria-describedby={`${method.dialogId}-scan`}
+      >
+        <div class="bt-qr-dialog-body">
+          <h3 id={`${method.dialogId}-title`}>{method.label}</h3>
+          <p class="bt-qr-scan" id={`${method.dialogId}-scan`}>
+            {method.scanText}
+          </p>
+          <div class="bt-qr bt-qr-large" role="img" aria-label={method.qrLabel}>
+            <Fragment set:html={method.svg} />
+            <span class="bt-qr-logo" aria-hidden="true">
+              <Fragment set:html={method.logo} />
+            </span>
+          </div>
+          {method.address && (
+            <div class="bt-address" data-address>
+              <code>{method.address}</code>
+              <button type="button" class="bt-copy" hidden data-copy-address={method.address}>
+                {copy.payment.copy}
+              </button>
+            </div>
+          )}
+          <button type="button" class="bt-dialog-close" data-qr-close>
+            {copy.payment.close}
+          </button>
+        </div>
+      </dialog>
+    ))}
+  </section>
+
+  <section class="bt-buy-section" id="buy-order" aria-labelledby="buy-order-title">
+    <h2 id="buy-order-title">{copy.form.title}</h2>
+    <p class="bt-section-intro">{copy.form.intro}</p>
+
+    <noscript>
+      <p class="bt-noscript">
+        <SupportEmail template={copy.form.noScript} email={supportEmail} />
+      </p>
+    </noscript>
+
+    <div data-form-wrap>
+      <!-- Sensitive fields have no name: a no-JavaScript GET submit must not put them in the URL. -->
+      <form class="bt-form" data-purchase-form data-locale={lang} novalidate>
+        <div class="bt-field">
+          <label for="purchase-email">{copy.form.emailLabel}</label>
+          <input
+            id="purchase-email"
+            class="bt-input"
+            type="email"
+            data-field-email
+            autocomplete="email"
+            inputmode="email"
+            maxlength="254"
+            spellcheck="false"
+            required
+            aria-describedby="purchase-email-hint purchase-email-error"
+          />
+          <p class="bt-hint" id="purchase-email-hint">
+            {copy.form.emailHint}
+          </p>
+          <p class="bt-field-error" id="purchase-email-error" data-error="email" aria-live="polite" hidden></p>
+        </div>
+
+        <div class="bt-field">
+          <label for="purchase-email-confirm">{copy.form.emailConfirmLabel}</label>
+          <input
+            id="purchase-email-confirm"
+            class="bt-input"
+            type="email"
+            data-field-email-confirm
+            autocomplete="email"
+            inputmode="email"
+            maxlength="254"
+            spellcheck="false"
+            required
+            aria-describedby="purchase-email-confirm-hint purchase-email-confirm-error"
+          />
+          <p class="bt-hint" id="purchase-email-confirm-hint">
+            {copy.form.emailConfirmHint}
+          </p>
+          <p
+            class="bt-field-error"
+            id="purchase-email-confirm-error"
+            data-error="emailConfirm"
+            aria-live="polite"
+            hidden
+          ></p>
+        </div>
+
+        <fieldset
+          class="bt-field bt-method-fieldset"
+          data-method-fieldset
+          tabindex="-1"
+          aria-describedby={
+            hasManualAmountMethod ? 'purchase-amount-note purchase-method-error' : 'purchase-method-error'
+          }
+        >
+          <legend>{copy.form.methodLegend}</legend>
+          <div class="bt-radio-group">
+            {methods.map((method) => (
+              <label class="bt-radio">
+                <input type="radio" name="payment-method" value={method.id} required />
+                <span>{method.label}</span>
+              </label>
+            ))}
+          </div>
+          {hasManualAmountMethod && (
+            <p class="bt-hint" id="purchase-amount-note">
+              {amountNote}
+            </p>
+          )}
+          <p class="bt-field-error" id="purchase-method-error" data-error="method" aria-live="polite" hidden></p>
+        </fieldset>
+
+        <div class="bt-field">
+          <label for="purchase-transaction">{copy.form.transactionLabel}</label>
+          <input
+            id="purchase-transaction"
+            class="bt-input"
+            type="text"
+            data-field-transaction
+            autocomplete="off"
+            spellcheck="false"
+            maxlength="100"
+            required
+            aria-describedby="purchase-transaction-hint purchase-transaction-method-hint purchase-transaction-error"
+          />
+          <p class="bt-hint" id="purchase-transaction-hint">
+            {copy.form.transactionHint}
+          </p>
+          <p class="bt-hint" id="purchase-transaction-method-hint" data-transaction-hint hidden></p>
+          <p
+            class="bt-field-error"
+            id="purchase-transaction-error"
+            data-error="transaction"
+            aria-live="polite"
+            hidden
+          ></p>
+        </div>
+
+        <div class="bt-field">
+          <p class="bt-label" id="purchase-turnstile-label">
+            {copy.form.turnstileLabel}
+          </p>
+          <p class="bt-hint" id="purchase-turnstile-hint">
+            {copy.form.turnstileHint}
+          </p>
+          <div
+            class="bt-turnstile"
+            data-turnstile
+            tabindex="-1"
+            aria-labelledby="purchase-turnstile-label"
+            aria-describedby="purchase-turnstile-hint purchase-turnstile-status"
+          ></div>
+          <p class="bt-hint" id="purchase-turnstile-status" data-turnstile-status role="status">
+            {copy.form.turnstileLoading}
+          </p>
+        </div>
+
+        <div class="bt-form-problem" data-form-problem role="alert" tabindex="-1" hidden></div>
+
+        <div class="bt-form-fallback" data-turnstile-fallback hidden>
+          <p>
+            <SupportEmail template={copy.form.supportFallback} email={supportEmail} />
+          </p>
+        </div>
+
+        <div class="bt-submit-row">
+          <button type="submit" class="bt-submit" data-submit>
+            {copy.form.submit}
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <section
+      class="bt-result is-success"
+      data-result-success
+      role="status"
+      tabindex="-1"
+      aria-labelledby="purchase-success-title"
+      hidden
+    >
+      <h2 id="purchase-success-title">{copy.success.title}</h2>
+      <p data-success-body></p>
+      <dl class="bt-result-details">
+        <dt>{copy.success.emailLabel}</dt>
+        <dd data-success-email></dd>
+      </dl>
+      <p>{successReview}</p>
+      <p>{copy.success.waitEmail}</p>
+      <p>{copy.success.activate}</p>
+    </section>
+
+    <section
+      class="bt-result is-problem"
+      data-result-problem
+      role="alert"
+      tabindex="-1"
+      aria-labelledby="purchase-problem-title"
+      hidden
+    >
+      <h2 id="purchase-problem-title" data-problem-title>
+        {copy.form.problemTitle}
+      </h2>
+      <p data-problem-body></p>
+      <p>
+        <SupportEmail template={copy.support.body} email={supportEmail} />
+      </p>
+    </section>
+  </section>
+
+  <section class="bt-buy-section" aria-labelledby="buy-terms-title">
+    <h2 id="buy-terms-title">{copy.terms.title}</h2>
+    <ul class="bt-terms-list">
+      {copy.terms.items.map((item) => (
+        <li>{item.includes('{email}') ? <SupportEmail template={item} email={supportEmail} /> : item}</li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="bt-buy-section" aria-labelledby="buy-policy-title">
+    <h2 id="buy-policy-title">{copy.privacy.title}</h2>
+    <div class="bt-info-grid">
+      <div class="bt-info-card">
+        <p>{copy.privacy.body}</p>
+      </div>
+      <div class="bt-info-card">
+        <h3>{copy.support.title}</h3>
+        <p>
+          <SupportEmail template={copy.support.body} email={supportEmail} />
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <script
+    id="purchase-turnstile-script"
+    is:inline
+    src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
+    async
+    defer
+  ></script>
+  <script>
+    import { initPurchaseForm } from '@/scripts/purchase-form';
+    import { initPaymentQrDialogs } from '@/scripts/purchase-qr';
+
+    initPaymentQrDialogs();
+    initPurchaseForm();
+  </script>
+</div>
+
+<style>
+  .bt-buy {
+    color: var(--bt-ink);
+    font-family: var(--bt-font-sans);
+  }
+
+  .bt-buy a {
+    color: var(--bt-brand-strong);
+    text-underline-offset: 0.2em;
+  }
+
+  .bt-buy-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    align-items: start;
+    gap: clamp(2rem, 5vw, 4rem);
+    padding-block: clamp(1.5rem, 4vw, 3rem) clamp(2rem, 5vw, 3.5rem);
+  }
+
+  .bt-buy-kicker {
+    margin: 0;
+    color: var(--bt-brand);
+    font-family: var(--bt-font-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .bt-buy-tagline {
+    margin: 0.6rem 0 0;
+    color: var(--bt-ink);
+    font-size: clamp(1.9rem, 4vw, 3rem);
+    font-weight: 600;
+    letter-spacing: -0.035em;
+    line-height: 1.1;
+    text-wrap: balance;
+  }
+
+  .bt-buy-lead {
+    max-width: 36rem;
+    margin: 1rem 0 0;
+    color: var(--bt-muted);
+    font-size: 1rem;
+    line-height: 1.75;
+    text-wrap: pretty;
+  }
+
+  .bt-steps-heading {
+    margin: 1.6rem 0 0;
+    color: var(--bt-ink);
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  .bt-steps {
+    display: grid;
+    gap: 0.7rem;
+    max-width: 38rem;
+    margin: 0.6rem 0 0;
+    padding-left: 1.4rem;
+    color: var(--bt-ink);
+    font-size: 0.92rem;
+    line-height: 1.7;
+  }
+
+  .bt-steps li::marker {
+    color: var(--bt-brand);
+    font-family: var(--bt-font-mono);
+    font-weight: 600;
+  }
+
+  .bt-buy-steps-note {
+    margin: 0.8rem 0 0;
+    color: var(--bt-faint);
+    font-size: 0.8rem;
+  }
+
+  .bt-price-card {
+    display: grid;
+    gap: 0.8rem;
+    border: 1px solid color-mix(in oklab, var(--bt-brand) 30%, var(--bt-border));
+    border-radius: 1.15rem;
+    padding: clamp(1.2rem, 3vw, 1.7rem);
+    background: radial-gradient(circle at 0% 0%, var(--bt-brand-soft), transparent 55%), var(--bt-surface);
+  }
+
+  .bt-price-one-time {
+    margin: 0 0 0.35rem;
+    color: var(--bt-muted);
+    font-size: 0.82rem;
+    line-height: 1.6;
+  }
+
+  .bt-price-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    border-top: 1px solid var(--bt-border);
+    padding-top: 0.7rem;
+    color: var(--bt-muted);
+    font-size: 0.85rem;
+  }
+
+  .bt-price-row strong {
+    color: var(--bt-ink);
+    font-family: var(--bt-font-mono);
+    font-size: 1.45rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  .bt-price-note {
+    margin: 0.2rem 0 0;
+    color: var(--bt-faint);
+    font-size: 0.78rem;
+    line-height: 1.6;
+  }
+
+  .bt-buy-section {
+    border-top: 1px solid var(--bt-border);
+    padding-block: clamp(2rem, 5vw, 3.5rem);
+    scroll-margin-top: 6rem;
+  }
+
+  .bt-buy-section h2 {
+    margin: 0;
+    color: var(--bt-ink);
+    font-size: clamp(1.4rem, 2.6vw, 1.9rem);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  .bt-section-intro {
+    max-width: 44rem;
+    margin: 0.7rem 0 0;
+    color: var(--bt-muted);
+    font-size: 0.92rem;
+    line-height: 1.7;
+  }
+
+  .bt-payment-hint {
+    max-width: 44rem;
+    margin: 0.55rem 0 0;
+    color: var(--bt-muted);
+    font-size: 0.8rem;
+    line-height: 1.7;
+  }
+
+  .bt-method-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1.5rem 1.1rem;
+    margin: 1.5rem 0 0;
+  }
+
+  .bt-method {
+    display: grid;
+    align-content: start;
+    gap: 0.55rem;
+    margin: 0;
+    text-align: center;
+  }
+
+  .bt-qr-button {
+    position: relative;
+    width: 100%;
+    border: 0;
+    border-radius: 0.9rem;
+    padding: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    cursor: zoom-in;
+  }
+
+  .bt-qr-button:focus-visible {
+    outline: 2px solid var(--bt-brand);
+    outline-offset: 3px;
+  }
+
+  .bt-qr {
+    position: relative;
+    display: block;
+    width: 100%;
+    aspect-ratio: 1;
+    border: 1px solid color-mix(in oklab, var(--bt-border) 70%, transparent);
+    border-radius: 0.9rem;
+    padding: 0.6rem;
+    background: #ffffff;
+  }
+
+  .bt-qr > :global(svg) {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .bt-qr-logo {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: grid;
+    place-items: center;
+    width: 16%;
+    aspect-ratio: 1;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #ffffff;
+    box-shadow: 0 0 0 0.16rem #ffffff;
+    transform: translate(-50%, -50%);
+  }
+
+  .bt-qr-logo :global(svg) {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .bt-zoom {
+    position: absolute;
+    right: 0.5rem;
+    bottom: 0.5rem;
+    display: grid;
+    place-items: center;
+    width: 1.8rem;
+    height: 1.8rem;
+    border-radius: 999px;
+    background: rgb(0 0 0 / 0.62);
+    color: #ffffff;
+    opacity: 0;
+    transition: opacity 140ms ease;
+  }
+
+  .bt-qr-button:hover .bt-zoom,
+  .bt-qr-button:focus-visible .bt-zoom {
+    opacity: 1;
+  }
+
+  .bt-method-body {
+    display: grid;
+    justify-items: center;
+    gap: 0.3rem;
+    min-width: 0;
+  }
+
+  .bt-method-body h3 {
+    margin: 0;
+    color: var(--bt-ink);
+    font-size: 0.88rem;
+    font-weight: 600;
+  }
+
+  .bt-address {
+    display: grid;
+    justify-items: center;
+    gap: 0.35rem;
+    min-width: 0;
+    margin-top: 0.1rem;
+  }
+
+  .bt-address code {
+    max-width: 100%;
+    padding: 0.4rem 0.55rem;
+    border-radius: 0.45rem;
+    background: var(--bt-code-bg);
+    color: var(--bt-ink);
+    font-family: var(--bt-font-mono);
+    font-size: 0.68rem;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+    user-select: all;
+  }
+
+  .bt-copy {
+    min-height: 2rem;
+    border: 1px solid var(--bt-border-strong);
+    border-radius: 999px;
+    padding: 0.25rem 0.7rem;
+    background: transparent;
+    color: var(--bt-ink);
+    font: inherit;
+    font-size: 0.74rem;
+    cursor: pointer;
+  }
+
+  .bt-copy:hover {
+    border-color: var(--bt-brand);
+    color: var(--bt-brand-strong);
+  }
+
+  .bt-copy:focus-visible {
+    outline: 2px solid var(--bt-brand);
+    outline-offset: 2px;
+  }
+
+  .bt-copy[hidden] {
+    display: none;
+  }
+
+  .bt-zoom-hint {
+    margin: 1rem 0 0;
+    color: var(--bt-faint);
+    font-size: 0.76rem;
+    line-height: 1.6;
+  }
+
+  .bt-qr-dialog {
+    width: min(21rem, calc(100vw - 2rem));
+    max-height: calc(100dvh - 2rem);
+    margin: auto;
+    border: 1px solid var(--bt-border);
+    border-radius: 1.1rem;
+    padding: 0;
+    overflow: auto;
+    background: var(--bt-surface);
+    color: var(--bt-ink);
+  }
+
+  .bt-qr-dialog::backdrop {
+    background: rgb(0 0 0 / 0.52);
+  }
+
+  .bt-qr-dialog-body {
+    display: grid;
+    justify-items: center;
+    gap: 0.75rem;
+    padding: 1.25rem;
+    text-align: center;
+  }
+
+  .bt-qr-dialog-body h3 {
+    margin: 0;
+    color: var(--bt-ink);
+    font-size: 1.05rem;
+    font-weight: 600;
+  }
+
+  .bt-qr-scan {
+    margin: 0;
+    color: var(--bt-muted);
+    font-size: 0.84rem;
+    line-height: 1.6;
+  }
+
+  .bt-qr-large {
+    width: min(17rem, 100%);
+  }
+
+  .bt-dialog-close {
+    min-height: 2.4rem;
+    border: 1px solid var(--bt-border-strong);
+    border-radius: 999px;
+    padding: 0.45rem 1.3rem;
+    background: transparent;
+    color: var(--bt-ink);
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .bt-dialog-close:hover {
+    border-color: var(--bt-brand);
+    color: var(--bt-brand-strong);
+  }
+
+  .bt-dialog-close:focus-visible {
+    outline: 2px solid var(--bt-brand);
+    outline-offset: 2px;
+  }
+
+  .bt-noscript,
+  .bt-form-fallback {
+    margin: 1rem 0 0;
+    border: 1px solid color-mix(in oklab, var(--bt-warning) 40%, var(--bt-border));
+    border-radius: 0.75rem;
+    padding: 0.9rem 1rem;
+    background: color-mix(in oklab, var(--bt-warning) 8%, transparent);
+    color: var(--bt-ink);
+    font-size: 0.88rem;
+    line-height: 1.65;
+  }
+
+  .bt-noscript {
+    max-width: 38rem;
+  }
+
+  .bt-form-fallback p {
+    margin: 0;
+  }
+
+  .bt-form {
+    display: grid;
+    gap: 1.15rem;
+    max-width: 38rem;
+    margin-top: 1.4rem;
+  }
+
+  .bt-field {
+    display: grid;
+    gap: 0.4rem;
+    margin: 0;
+    border: 0;
+    padding: 0;
+    min-width: 0;
+  }
+
+  .bt-field > label,
+  .bt-label,
+  .bt-field legend {
+    padding: 0;
+    color: var(--bt-ink);
+    font-size: 0.88rem;
+    font-weight: 600;
+  }
+
+  .bt-input {
+    width: 100%;
+    border: 1px solid var(--bt-border-strong);
+    border-radius: 0.7rem;
+    padding: 0.7rem 0.85rem;
+    background: var(--bt-surface);
+    color: var(--bt-ink);
+    font: inherit;
+    font-size: 0.92rem;
+  }
+
+  .bt-input::placeholder {
+    color: var(--bt-faint);
+  }
+
+  .bt-input:focus-visible {
+    border-color: transparent;
+    outline: 2px solid var(--bt-brand);
+    outline-offset: 2px;
+  }
+
+  .bt-input[aria-invalid='true'] {
+    border-color: var(--bt-danger);
+  }
+
+  .bt-hint {
+    margin: 0;
+    color: var(--bt-muted);
+    font-size: 0.78rem;
+    line-height: 1.6;
+  }
+
+  .bt-hint[hidden] {
+    display: none;
+  }
+
+  .bt-field-error {
+    margin: 0;
+    color: var(--bt-danger);
+    font-size: 0.8rem;
+    line-height: 1.5;
+  }
+
+  .bt-field-error[hidden] {
+    display: none;
+  }
+
+  .bt-method-fieldset:focus-visible {
+    border-radius: 0.5rem;
+    outline: 2px solid var(--bt-brand);
+    outline-offset: 4px;
+  }
+
+  .bt-radio-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.15rem;
+  }
+
+  .bt-radio {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 2.5rem;
+    border: 1px solid var(--bt-border-strong);
+    border-radius: 0.7rem;
+    padding: 0.45rem 0.8rem;
+    background: var(--bt-surface);
+    color: var(--bt-ink);
+    font-size: 0.86rem;
+    cursor: pointer;
+  }
+
+  .bt-radio:has(input:checked) {
+    border-color: var(--bt-brand);
+    background: var(--bt-brand-soft);
+  }
+
+  .bt-radio:has(input:focus-visible) {
+    outline: 2px solid var(--bt-brand);
+    outline-offset: 2px;
+  }
+
+  .bt-radio input {
+    margin: 0;
+    accent-color: var(--bt-brand);
+  }
+
+  .bt-turnstile {
+    display: grid;
+    justify-items: start;
+    min-height: 4rem;
+    border-radius: 0.4rem;
+  }
+
+  .bt-turnstile:focus-visible {
+    outline: 2px solid var(--bt-brand);
+    outline-offset: 3px;
+  }
+
+  .bt-form-problem {
+    border: 1px solid color-mix(in oklab, var(--bt-danger) 45%, var(--bt-border));
+    border-radius: 0.7rem;
+    padding: 0.8rem 0.95rem;
+    background: color-mix(in oklab, var(--bt-danger) 8%, transparent);
+    color: var(--bt-danger);
+    font-size: 0.88rem;
+    line-height: 1.6;
+  }
+
+  .bt-form-problem:focus-visible {
+    outline: 2px solid var(--bt-danger);
+    outline-offset: 2px;
+  }
+
+  .bt-form-problem[hidden] {
+    display: none;
+  }
+
+  .bt-submit-row {
+    margin-top: 0.2rem;
+  }
+
+  .bt-submit {
+    min-height: 2.8rem;
+    border: 0;
+    border-radius: 999px;
+    padding: 0.7rem 1.5rem;
+    background: var(--bt-brand);
+    color: var(--bt-brand-ink);
+    font: inherit;
+    font-size: 0.92rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .bt-submit:hover:not(:disabled) {
+    background: var(--bt-brand-strong);
+  }
+
+  .bt-submit:focus-visible {
+    outline: 2px solid var(--bt-brand);
+    outline-offset: 3px;
+  }
+
+  .bt-submit:disabled {
+    opacity: 0.65;
+    cursor: progress;
+  }
+
+  .bt-result {
+    max-width: 42rem;
+    margin-top: 1.5rem;
+    border: 1px solid var(--bt-border);
+    border-radius: 1rem;
+    padding: clamp(1.2rem, 3vw, 1.8rem);
+    background: var(--bt-surface);
+    scroll-margin-top: 6rem;
+  }
+
+  .bt-result:focus-visible {
+    outline: 2px solid var(--bt-brand);
+    outline-offset: 3px;
+  }
+
+  .bt-result[hidden] {
+    display: none;
+  }
+
+  .bt-result.is-success {
+    border-color: color-mix(in oklab, var(--bt-success) 45%, var(--bt-border));
+  }
+
+  .bt-result.is-problem {
+    border-color: color-mix(in oklab, var(--bt-danger) 45%, var(--bt-border));
+  }
+
+  .bt-result h2 {
+    margin: 0;
+    font-size: 1.25rem;
+  }
+
+  .bt-result p {
+    margin: 0.7rem 0 0;
+    color: var(--bt-muted);
+    font-size: 0.9rem;
+    line-height: 1.7;
+  }
+
+  .bt-result-details {
+    display: grid;
+    gap: 0.2rem;
+    margin: 0.9rem 0 0;
+    border: 1px solid var(--bt-border);
+    border-radius: 0.6rem;
+    padding: 0.7rem 0.85rem;
+    background: var(--bt-surface-2);
+  }
+
+  .bt-result-details dt {
+    color: var(--bt-faint);
+    font-size: 0.75rem;
+  }
+
+  .bt-result-details dd {
+    margin: 0;
+    color: var(--bt-ink);
+    font-family: var(--bt-font-mono);
+    font-size: 0.85rem;
+    overflow-wrap: anywhere;
+  }
+
+  .bt-terms-list {
+    display: grid;
+    gap: 0.55rem;
+    max-width: 46rem;
+    margin: 1.2rem 0 0;
+    padding-left: 1.25rem;
+    color: var(--bt-muted);
+    font-size: 0.9rem;
+    line-height: 1.7;
+  }
+
+  .bt-info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    margin-top: 1.2rem;
+  }
+
+  .bt-info-card {
+    border: 1px solid var(--bt-border);
+    border-radius: 1rem;
+    padding: 1.1rem 1.2rem;
+    background: var(--bt-surface);
+  }
+
+  .bt-info-card h3 {
+    margin: 0;
+    color: var(--bt-ink);
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .bt-info-card p {
+    margin: 0;
+    color: var(--bt-muted);
+    font-size: 0.88rem;
+    line-height: 1.7;
+  }
+
+  .bt-info-card h3 + p {
+    margin-top: 0.6rem;
+  }
+
+  @media (max-width: 60rem) {
+    .bt-buy-hero,
+    .bt-info-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .bt-price-card {
+      max-width: 32rem;
+    }
+  }
+
+  @media (max-width: 56rem) {
+    .bt-method-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bt-zoom {
+      transition: none;
+    }
+  }
+
+  @media (max-width: 36rem) {
+    .bt-radio-group {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .bt-radio {
+      justify-content: center;
+      text-align: center;
+    }
+
+    .bt-submit {
+      width: 100%;
+    }
+  }
+</style>

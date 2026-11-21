@@ -1,0 +1,62 @@
+---
+title: Getting started
+description: From installation to your first selection and full-page translation.
+---
+
+import { storeUrls } from '@/config/stores';
+
+<p>
+  Beyond Translate is available on the <a href={storeUrls.chrome}>Chrome Web Store</a>,{' '}
+  <a href={storeUrls.edge}>Microsoft Edge Add-ons</a> and <a href={storeUrls.firefox}>Firefox Add-ons</a>. Install it
+  from your browser's store, then pin the extension to the toolbar.
+</p>
+
+## Your first selection translation
+
+Select some text on any page and the Beyond Translate icon appears beside the selection. Click it and the translation panel opens in place.
+
+- With dictionary mode on, selecting a single word shows phonetics, parts of speech, senses, examples and etymology.
+- Both the original and the translation can be read aloud and copied.
+- The quick-search row at the bottom opens Google, Forvo, Cambridge Dictionary, Dictionary.com or Wiktionary in a new tab. Enable, reorder or add custom entries under Settings › Selection › Quick search.
+
+You can change the trigger under Settings › Selection to open automatically or to turn the icon off. The selection icon can follow the end of the selection or sit at the start, end, above or below it.
+
+## Full-page translation
+
+Click the Beyond Translate icon in the browser toolbar to open the toolbar panel. Choose a mode and start translating:
+
+- **Bilingual**: the translation is appended after each paragraph, with the original kept in place.
+- **Translation only**: the translation takes the original's place while links, bold text and page interactions stay intact.
+
+Both modes can be restored with **Show original** at any time. Content that the page updates after the translation appears is not overwritten by the old translation; it is translated again from the new text.
+
+Full-page translation works on the whole page or the main content area. Pages built with Web Components are supported too: the extension enters both open and closed Shadow Roots.
+
+## Toolbar panel
+
+The toolbar panel shows the site rules for the current tab and lets you choose the scope, target language, translation service, prompt, auto-translate and auto-archive. The bottom of the panel opens Settings; the **More** menu contains translation services, prompts, site rules, the notebook, the page archive, and backup/restore.
+
+## Settings
+
+Settings is organized by section:
+
+- **General**: target language, interface language, theme and translation font.
+- **Selection**: trigger, icon position, panel size, dictionary mode and quick search.
+- **Full page**: default mode, scope and translation progress.
+- **Floating ball** and **Pre-translation**: two optional shortcuts.
+- **Translation services**: model providers and machine translation.
+- **Prompts**, **Site rules**, **Notebook**, **Page archive**, **Backup & restore**, and **License**.
+
+Every change is saved immediately.
+
+## Floating ball and pre-translation
+
+The floating ball is an optional shortcut at the edge of the page, off by default. Once enabled, one click translates the page with the current site rules and another restores it. It can be dragged, and its position is shared across sites.
+
+Pre-translation is also optional and off by default. When you approach the floating ball or open the toolbar panel, it fetches the first screen of translations in the background and stores them in the cache, so the first screen appears immediately when you start translating.
+
+## Next steps
+
+- Use your own model or a cloud translation API: [Machine translation services](machine-translation/)
+- Fix translation preferences per site: open **Site rules** in Settings
+- Learn where your data goes: [Privacy](privacy/)

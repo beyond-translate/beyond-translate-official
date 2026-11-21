@@ -1,0 +1,49 @@
+---
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+
+import { purchaseConfig } from '@/config/purchase';
+import { getPurchaseStrings } from '@/i18n/purchase';
+import { assertPurchaseConfig } from '@/lib/purchase-guard';
+
+import PurchaseClosed from './PurchaseClosed.astro';
+import PurchaseOpen from './PurchaseOpen.astro';
+
+interface Props {
+  lang: string;
+}
+
+const { lang } = Astro.props;
+assertPurchaseConfig(purchaseConfig, Astro.site?.origin);
+
+const copy = getPurchaseStrings(lang);
+const open = purchaseConfig.enabled;
+const title = open ? copy.meta.title : copy.closed.title;
+const description = open ? copy.meta.description : copy.closed.body;
+// The purchase page is not ready for search engines until sales open.
+const robots = open ? [] : [{ tag: 'meta' as const, attrs: { name: 'robots', content: 'noindex' } }];
+---
+
+<StarlightPage
+  frontmatter={{
+    title,
+    description,
+    template: 'splash',
+    pagefind: false,
+    head: robots,
+  }}
+  hasSidebar={false}
+>
+  <div class:list={['not-content', 'bt-purchase', { 'is-open': open }]}>
+    {open ? <PurchaseOpen lang={lang} /> : <PurchaseClosed lang={lang} />}
+  </div>
+</StarlightPage>
+
+<style>
+  .bt-purchase {
+    padding-block: clamp(3rem, 8vw, 7rem);
+  }
+
+  .bt-purchase.is-open {
+    padding-block: clamp(1.5rem, 4vw, 3rem) clamp(3rem, 6vw, 5rem);
+  }
+</style>
