@@ -13,9 +13,12 @@ export function initPurchaseDialogs(): void {
     });
 
     // Clicks on the backdrop land on the dialog element itself; the padded body covers the rest.
-    dialog.addEventListener('click', (event) => {
-      if (event.target === dialog) dialog.close();
-    });
+    // A dialog can opt out of pointer dismissal; Escape and its close buttons still work.
+    if (!dialog.hasAttribute('data-disable-pointer-dismissal')) {
+      dialog.addEventListener('click', (event) => {
+        if (event.target === dialog) dialog.close();
+      });
+    }
 
     for (const closer of dialog.querySelectorAll<HTMLButtonElement>('[data-dialog-close]')) {
       closer.addEventListener('click', () => dialog.close());

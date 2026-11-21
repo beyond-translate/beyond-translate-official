@@ -154,6 +154,7 @@ const successReview = fillTemplate(copy.success.review, { hours: reviewHours });
         id={method.dialogId}
         aria-labelledby={`${method.dialogId}-title`}
         aria-describedby={`${method.dialogId}-scan`}
+        data-disable-pointer-dismissal
       >
         <div class="bt-qr-dialog-body">
           <h3 id={`${method.dialogId}-title`}>{method.label}</h3>
@@ -187,6 +188,7 @@ const successReview = fillTemplate(copy.success.review, { hours: reviewHours });
     id="buy-order-dialog"
     aria-labelledby="buy-order-title"
     aria-describedby="buy-order-intro"
+    data-disable-pointer-dismissal
   >
     <div class="bt-order-dialog-body">
       <header class="bt-order-dialog-head">
